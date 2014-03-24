@@ -11,5 +11,6 @@
   ;; If there is more than one, they won't work right.
  )
 (setq auto-mode-alist (cons '("\\.launch$" . xml-mode) auto-mode-alist))
+(setq auto-mode-alist (cons '("\\.bashrc$" . shell-script-mode) auto-mode-alist))
 
 (global-font-lock-mode 1)
