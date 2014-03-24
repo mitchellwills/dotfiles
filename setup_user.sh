@@ -33,7 +33,7 @@ then
     (
 	echo "Installing stuff"
 	set -x #echo on
-	sudo apt-get install sl
+	sudo apt-get install sl yaml-mode haskell-mode
     )
 fi
 

@@ -40,12 +40,12 @@ fi
 
 
 #aliases
-alias ll='ls -alF'
+alias l='ls'
+alias ll='ls -AlF'
 alias lr='ll -R'           #  Recursive ls.
 alias tree='tree -Csu'    #  Nice alternative to 'recursive ls' ...
 
 alias rmtmp='rm -f *~;rm -f .*~'
-
 
 alias mkdir='mkdir -p' #recursive directory make
 
@@ -55,6 +55,8 @@ alias ....='cd ../../..'
 alias .....='cd ../../../..'
 alias -- -='cd -'
 alias ~='cd'
+
+alias e=$EDITOR
 
 # Add colors for filetype and  human-readable sizes by default on 'ls':
 alias ls='ls -h --color'
