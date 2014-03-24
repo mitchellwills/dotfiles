@@ -11,6 +11,8 @@ alias ll='ls -alF'
 alias lr='ll -R'           #  Recursive ls.
 alias tree='tree -Csu'    #  Nice alternative to 'recursive ls' ...
 
+alias rmtmp='rm -f *~;rm -f .*~'
+
 #recursive directory make
 alias mkdir='mkdir -p'
 
