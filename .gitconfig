@@ -5,3 +5,5 @@
 [user]
 	name = Mitchell Wills
 	email = mwills@wpi.edu
+[push]
+	default = simple
