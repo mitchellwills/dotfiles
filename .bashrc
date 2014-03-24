@@ -121,3 +121,5 @@ fi
 if [ -f ~/.rossetup ]; then
     source ~/.rossetup
 fi
+
+alias ccc='ssh mwills@ccc.wpi.edu'
