@@ -1,0 +1,7 @@
+[alias]
+	st = status
+	tree = log --graph --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr)%Creset' --abbrev-commit --date=relative
+
+[user]
+	name = Mitchell Wills
+	email = mwills@wpi.edu
