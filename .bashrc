@@ -122,4 +122,6 @@ if [ -f ~/.rossetup ]; then
     source ~/.rossetup
 fi
 
+for f in /etc/bash_completion.d/*; do source $f; done
+
 alias ccc='ssh mwills@ccc.wpi.edu'
