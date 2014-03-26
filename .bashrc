@@ -93,7 +93,7 @@ function maketar() { tar cvzf "${1%%/}.tar.gz"  "${1%%/}/"; }
 function makezip() { zip -r "${1%%/}.zip" "$1" ; }
 
 function myps() { ps $@ -u $USER -o pid,%cpu,%mem,bsdtime,command ; }
-function pstree() { my_ps f | awk '!/awk/ && $0~var' var=${1:-".*"} ; }
+function pstree() { myps f | awk '!/awk/ && $0~var' var=${1:-".*"} ; }
 
 if [ -f /etc/bash_completion ]; then
     . /etc/bash_completion
@@ -129,3 +129,5 @@ if [ -f ~/.local.bashrc ]; then
 fi
 
 alias ccc='ssh mwills@ccc.wpi.edu'
+alias wpiwifi='nmcli con up id WPI-Wireless'
+alias 3002wifi='nmcli con up id RBE_3002'
