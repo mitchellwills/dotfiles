@@ -25,6 +25,7 @@ shopt -s checkwinsize
 shopt -s cdspell
 shopt -s cmdhist
 shopt -s extglob
+stty -ixon
 
 # enable color support of ls and also add handy aliases
 if [ -x /usr/bin/dircolors ]; then
@@ -55,6 +56,12 @@ alias ....='cd ../../..'
 alias .....='cd ../../../..'
 alias -- -='cd -'
 alias ~='cd'
+
+#alias which='alias | /usr/bin/which --tty-only --read-alias --show-dot --show-tilde'
+alias which='type -a'
+alias where=which
+alias what=which
+alias when=date
 
 alias e=$EDITOR
 
@@ -101,12 +108,13 @@ fi
 
 export PS1="\[\e[00;33m\]\u\[\e[0m\]\[\e[00;37m\]@\h:\[\e[0m\]\[\e[00;36m\][\w]:\[\e[0m\]\[\e[00;37m\] \[\e[0m\]"
 case "$TERM" in
-xterm*|rxvt*)
-    PS1="\[\e]0;\u@\h: \w\a\]$PS1"
-    ;;
-*)
-    ;;
+    xterm*|rxvt*)
+	PS1="\[\e]0;\u@\h: \w\a\]$PS1"
+	;;
+    *)
+	;;
 esac
+
 
 # enable programmable completion features (you don't need to enable
 # this, if it's already enabled in /etc/bash.bashrc and /etc/profile
@@ -129,5 +137,7 @@ if [ -f ~/.local.bashrc ]; then
 fi
 
 alias ccc='ssh mwills@ccc.wpi.edu'
+
 alias wpiwifi='nmcli con up id WPI-Wireless'
 alias 3002wifi='nmcli con up id RBE_3002'
+
