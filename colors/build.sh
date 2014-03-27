@@ -1,0 +1,4 @@
+INPUT_DIR=$1
+OUTPUT_DIR=$2
+
+cp $INPUT_DIR/LS_COLORS $OUTPUT_DIR/.dircolors.symlink
