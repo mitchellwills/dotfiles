@@ -48,6 +48,7 @@ function scm {
 	git_prompt_vars
 	SCM="${green}|${green}$SCM_HEAD $SCM_STATUS_SYMBOL${green}"
 	[[ $SCM_GIT_BEHIND -gt 0 ]] && SCM=" $SCM ${red}$DOWN_ARROW_SYMBOL$SCM_GIT_BEHIND"
+	[[ $SCM_GIT_AHEAD -gt 0 && $SCM_GIT_BEHIND -eq 0 ]] && SCM="$SCM${cyan}"
 	[[ $SCM_GIT_AHEAD -gt 0 ]] && SCM="$SCM $UP_ARROW_SYMBOL$SCM_GIT_AHEAD"
 	SCM="$SCM${green}|"
   else SCM=""
