@@ -17,13 +17,6 @@ WD="${blue}[\w]"
 
 function git_prompt_vars {
   local status="$(git status -bs --porcelain 2> /dev/null)"
-  if [[ -n "$(grep -v ^# <<< "${status}")" ]]; then #if there are lines that don't begin with #
-    SCM_DIRTY=1
-    SCM_STATUS_SYMBOL=$SCM_DIRTY_SYMBOL
-  else
-    SCM_DIRTY=0
-    SCM_STATUS_SYMBOL=$SCM_CLEAN_SYMBOL
-  fi
 
   local ref=$(git symbolic-ref HEAD 2> /dev/null)
   SCM_BRANCH=${ref#refs/heads/}
@@ -42,11 +35,23 @@ function git_prompt_vars {
   [[ "${status}" =~ ${behind_re} ]] && SCM_GIT_BEHIND="${BASH_REMATCH[1]}"
 
   SCM_GIT_STASH_COUNT="$(git stash list 2> /dev/null | wc -l | tr -d ' ')"
+  SCM_GIT_STAGED_COUNT="$(tail -n +2 <<< "${status}" | grep -v ^[[:space:]?]  | wc -l | tr -d ' ')"
+  SCM_GIT_UNSTAGED_COUNT="$(tail -n +2 <<< "${status}" | grep ^.[^[:space:]?]  | wc -l | tr -d ' ')"
+  SCM_GIT_UNTRACKED_COUNT="$(tail -n +2 <<< "${status}" | grep ^??  | wc -l | tr -d ' ')"
 }
 function scm {
   if which git &> /dev/null && [[ -n "$(git rev-parse HEAD 2> /dev/null)" ]]; then
 	git_prompt_vars
-	SCM="${green}|${green}$SCM_HEAD $SCM_STATUS_SYMBOL${green}"
+	SCM="${green}|${green}$SCM_HEAD"
+	if [[ $SCM_GIT_STAGED_COUNT -gt 0 || $SCM_GIT_UNSTAGED_COUNT -gt 0 || $SCM_GIT_UNTRACKED_COUNT -gt 0 ]]; then
+		SCM="$SCM ${red}("
+		[[ $SCM_GIT_STAGED_COUNT -gt 0 ]] && SCM=" $SCM${green}+"
+		[[ $SCM_GIT_UNSTAGED_COUNT -gt 0 ]] && SCM=" $SCM${red}-"
+		[[ $SCM_GIT_UNTRACKED_COUNT -gt 0 ]] && SCM=" $SCM${cyan}?"
+		SCM="$SCM${red})"
+	else
+		SCM="$SCM $SCM_CLEAN_SYMBOL"
+	fi
 	[[ $SCM_GIT_BEHIND -gt 0 ]] && SCM=" $SCM ${red}$DOWN_ARROW_SYMBOL$SCM_GIT_BEHIND"
 	[[ $SCM_GIT_AHEAD -gt 0 && $SCM_GIT_BEHIND -eq 0 ]] && SCM="$SCM${cyan}"
 	[[ $SCM_GIT_AHEAD -gt 0 ]] && SCM="$SCM $UP_ARROW_SYMBOL$SCM_GIT_AHEAD"
