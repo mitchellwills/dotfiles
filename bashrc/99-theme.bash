@@ -2,7 +2,10 @@ SCM_SYMBOL=$'±'
 SCM_DIRTY_SYMBOL="${red}✗"
 SCM_CLEAN_SYMBOL="${green}✓"
 
+DOWN_ARROW_SYMBOL=$'\xe2\x86\x93'
 RIGHT_ARROW_SYMBOL=$'\xe2\x86\x92'
+UP_ARROW_SYMBOL=$'\xe2\x86\x91'
+LEFT_ARROW_SYMBOL=$'\xe2\x86\x90'
 
 PROMPT_SYMBOL="${normal}\$"
 PROMPT_FORMAT="${normal}"
@@ -41,10 +44,12 @@ function git_prompt_vars {
   SCM_GIT_STASH_COUNT="$(git stash list 2> /dev/null | wc -l | tr -d ' ')"
 }
 function scm {
-  if which git &> /dev/null && [[ -n "$(git symbolic-ref HEAD 2> /dev/null)" ]]; then
+  if which git &> /dev/null && [[ -n "$(git rev-parse HEAD 2> /dev/null)" ]]; then
 	git_prompt_vars
 	SCM="${green}|${green}$SCM_HEAD $SCM_STATUS_SYMBOL${green}"
-	SCM="$SCM|"
+	[[ $SCM_GIT_BEHIND -gt 0 ]] && SCM=" $SCM ${red}$DOWN_ARROW_SYMBOL$SCM_GIT_BEHIND"
+	[[ $SCM_GIT_AHEAD -gt 0 ]] && SCM="$SCM $UP_ARROW_SYMBOL$SCM_GIT_AHEAD"
+	SCM="$SCM${green}|"
   else SCM=""
   fi
 }
@@ -64,7 +69,7 @@ function prompt_command() {
 	if [ $EXIT_STATUS == 0 ]; then
 		EXIT_CODE=
 	else
-		EXIT_CODE="${white}${background_red}Exited: $EXIT_STATUS"
+		EXIT_CODE="${white}${background_red}!!! Exited: $EXIT_STATUS !!!"
 	fi
 
 	PS1="\n$USERNAME@$HOST $WD $SCM $JOBS $EXIT_CODE\n$PROMPT_SYMBOL $PROMPT_FORMAT"
