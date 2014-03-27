@@ -1,7 +1,0 @@
-unbind-key C-b
-set-option -g prefix C-z
-
-bind-key 2 split-window -v
-bind-key 3 split-window -h
-
-bind-key 0 confirm-before -p "kill-pane #P? (y/n)" kill-pane
