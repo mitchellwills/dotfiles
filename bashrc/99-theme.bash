@@ -7,14 +7,6 @@ RIGHT_ARROW_SYMBOL=$'\xe2\x86\x92'
 UP_ARROW_SYMBOL=$'\xe2\x86\x91'
 LEFT_ARROW_SYMBOL=$'\xe2\x86\x90'
 
-PROMPT_SYMBOL="${normal}\$"
-PROMPT_FORMAT="${normal}"
-
-USERNAME="${yellow}\u@"
-HOST="${normal}\h"
-WD="${blue}[\w]"
-
-
 function git_prompt_vars {
   local status="$(git status -bs --porcelain 2> /dev/null)"
 
@@ -62,6 +54,14 @@ function scm {
 }
 
 
+PROMPT_SYMBOL="${normal}\$"
+PROMPT_FORMAT="${normal}"
+
+USERNAME="${yellow}\u"
+HOST="${normal}@\h"
+WD="${blue}[\w]"
+
+
 function prompt_command() {
 	EXIT_STATUS=$?
 	[ -n "$TMUX" ] && tmux_env_update
@@ -81,7 +81,7 @@ function prompt_command() {
 	fi
 
 	if [ -n "$SSH_CONNECTION" ]; then
-		SSH_PREFIX="${cyan}"`awk '{ print $1}' <<< $SSH_CONNECTION`"@"
+		SSH_PREFIX="${normal}"`awk '{ print $1}' <<< $SSH_CONNECTION`"@"
 	else
 		SSH_PREFIX=
 	fi
