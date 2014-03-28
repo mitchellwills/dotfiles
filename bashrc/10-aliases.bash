@@ -1,5 +1,3 @@
-
-
 #aliases
 alias l='ls'
 alias ll='ls -AlF'
@@ -37,4 +35,15 @@ alias ccc4='ssh mwills@cccwork4.wpi.edu'
 
 alias wpiwifi='nmcli con up id WPI-Wireless'
 alias 3002wifi='nmcli con up id RBE_3002'
+
+
+# git
+alias g='git'
+function git_pub() {
+  BRANCH=$(git rev-parse --abbrev-ref HEAD)
+  echo "Publishing ${BRANCH} to remote origin"
+  git push -u origin $BRANCH
+}
+
+
 

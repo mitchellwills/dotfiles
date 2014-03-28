@@ -1,6 +1,8 @@
 [alias]
 	st = status
 	tree = log --graph --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr)%Creset' --abbrev-commit --date=relative
+	publish = !sh -c \"git push -u origin $(git rev-parse --abbrev-ref HEAD)\"
+	cb = checkout -b
 
 [user]
 	name = Mitchell Wills
