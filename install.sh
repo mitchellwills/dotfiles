@@ -1,6 +1,6 @@
-#!/bin/sh
+#!/bin/bash
 
-ROOT_PATH=~/.config
+ROOT_PATH="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
 #unset install
 #read -p "Install stuff (y/n)?" choice

@@ -42,7 +42,7 @@ fi
 
 function r(){
 	(
-		cd ~/.config
+		cd "$(dirname "$(readlink ~/.bashrc)")/.."
 		./install.sh
 	)
 	source ~/.bashrc
