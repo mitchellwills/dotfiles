@@ -30,6 +30,10 @@ alias ls='ls -h --color'
 
 
 alias ccc='ssh mwills@ccc.wpi.edu'
+alias ccc1='ssh mwills@cccwork1.wpi.edu'
+alias ccc2='ssh mwills@cccwork2.wpi.edu'
+alias ccc3='ssh mwills@cccwork3.wpi.edu'
+alias ccc4='ssh mwills@cccwork4.wpi.edu'
 
 alias wpiwifi='nmcli con up id WPI-Wireless'
 alias 3002wifi='nmcli con up id RBE_3002'
