@@ -38,7 +38,7 @@ function scm {
 	if [[ $SCM_GIT_STAGED_COUNT -gt 0 || $SCM_GIT_UNSTAGED_COUNT -gt 0 || $SCM_GIT_UNTRACKED_COUNT -gt 0 ]]; then
 		SCM="$SCM ${red}("
 		[[ $SCM_GIT_STAGED_COUNT -gt 0 ]] && SCM="$SCM${green}+"
-		[[ $SCM_GIT_UNSTAGED_COUNT -gt 0 ]] && SCM="$SCM${red}-"
+		[[ $SCM_GIT_UNSTAGED_COUNT -gt 0 ]] && SCM="$SCM${red}*"
 		[[ $SCM_GIT_UNTRACKED_COUNT -gt 0 ]] && SCM="$SCM${cyan}?"
 		SCM="$SCM${red})"
 	else
