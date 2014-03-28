@@ -10,7 +10,7 @@ LEFT_ARROW_SYMBOL=$'\xe2\x86\x90'
 PROMPT_SYMBOL="${normal}\$"
 PROMPT_FORMAT="${normal}"
 
-USERNAME="${yellow}\u"
+USERNAME="${yellow}\u@"
 HOST="${normal}\h"
 WD="${blue}[\w]"
 
@@ -45,9 +45,9 @@ function scm {
 	SCM="${green}|${green}$SCM_HEAD"
 	if [[ $SCM_GIT_STAGED_COUNT -gt 0 || $SCM_GIT_UNSTAGED_COUNT -gt 0 || $SCM_GIT_UNTRACKED_COUNT -gt 0 ]]; then
 		SCM="$SCM ${red}("
-		[[ $SCM_GIT_STAGED_COUNT -gt 0 ]] && SCM=" $SCM${green}+"
-		[[ $SCM_GIT_UNSTAGED_COUNT -gt 0 ]] && SCM=" $SCM${red}-"
-		[[ $SCM_GIT_UNTRACKED_COUNT -gt 0 ]] && SCM=" $SCM${cyan}?"
+		[[ $SCM_GIT_STAGED_COUNT -gt 0 ]] && SCM="$SCM${green}+"
+		[[ $SCM_GIT_UNSTAGED_COUNT -gt 0 ]] && SCM="$SCM${red}-"
+		[[ $SCM_GIT_UNTRACKED_COUNT -gt 0 ]] && SCM="$SCM${cyan}?"
 		SCM="$SCM${red})"
 	else
 		SCM="$SCM $SCM_CLEAN_SYMBOL"
@@ -64,6 +64,7 @@ function scm {
 
 function prompt_command() {
 	EXIT_STATUS=$?
+	[ -n "$TMUX" ] && tmux_env_update
 	scm
 	
 	if [ $(jobs | wc -l) = 0 ]; then
@@ -79,7 +80,13 @@ function prompt_command() {
 		EXIT_CODE="${white}${background_red}!!! Exited: $EXIT_STATUS !!!"
 	fi
 
-	PS1="\n$USERNAME@$HOST $WD $SCM $JOBS $EXIT_CODE\n$PROMPT_SYMBOL $PROMPT_FORMAT"
+	if [ -n "$SSH_CONNECTION" ]; then
+		SSH_PREFIX="${cyan}"`awk '{ print $1}' <<< $SSH_CONNECTION`"@"
+	else
+		SSH_PREFIX=
+	fi
+
+	PS1="\n$SSH_PREFIX$USERNAME$HOST $WD $SCM $JOBS $EXIT_CODE${normal}\n $PROMPT_SYMBOL $PROMPT_FORMAT"
 	# set title bar
 	case "$TERM" in
 	    xterm*|rxvt*)
