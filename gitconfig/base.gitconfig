@@ -1,8 +1,25 @@
 [alias]
-	st = status
-	tree = log --graph --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr)%Creset' --abbrev-commit --date=relative
+	tree = log --graph --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cblue[%cn] %Cgreen(%cr)%Creset' --abbrev-commit --date=relative
+	lol = log --graph --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cblue[%cn] %Cgreen(%cr)%Creset' --abbrev-commit --date=relative
+	lola = log --graph --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cblue[%cn] %Cgreen(%cr)%Creset' --abbrev-commit --date=relative --all
+
 	publish = !sh -c \"git push -u origin $(git rev-parse --abbrev-ref HEAD)\"
-	cb = checkout -b
+
+	cp = cherry-pick
+	st = status -s -b
+	status = status -s -b
+	cl = clone
+	ci = commit
+	co = checkout
+	br = branch 
+	diff = diff --word-diff
+	dc = diff --cached
+
+[color]
+	branch = auto
+	diff = auto
+	interactive = auto
+	status = auto
 
 [user]
 	name = Mitchell Wills
