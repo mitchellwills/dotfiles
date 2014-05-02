@@ -25,8 +25,13 @@ done
 
 for file in `find $BUILD_DIR -type f -name '*.symlink'`; do
 	NAME=`basename $file .symlink`
-	echo "Linking $NAME"
-	ln -bf --symbolic $file ~/$NAME;
+	CURRENT_SYMLINK=`readlink ~/$NAME`
+	if [ "$CURRENT_SYMLINK" == "$file" ]; then
+		echo "Link already exists for $NAME"
+	else
+		echo "Linking $NAME"
+		ln -bf --symbolic $file ~/$NAME;
+	fi
 done
 
 
