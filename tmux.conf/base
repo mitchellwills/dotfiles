@@ -1,5 +1,5 @@
 unbind-key C-b
-set-option -g prefix C-z
+set-option -g prefix C-o
 
 bind-key 2 split-window -v
 bind-key 3 split-window -h
