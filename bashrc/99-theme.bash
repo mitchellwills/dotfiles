@@ -60,6 +60,7 @@ PROMPT_FORMAT="${normal}"
 USERNAME="${yellow}\u"
 HOST="${normal}@\h"
 WD="${blue}[\w]"
+TIME="${orange}\t"
 
 
 function prompt_command() {
@@ -80,13 +81,7 @@ function prompt_command() {
 		EXIT_CODE="${white}${background_red}!!! Exited: $EXIT_STATUS !!!"
 	fi
 
-	if [ -n "$SSH_CONNECTION" ]; then
-		SSH_PREFIX="${normal}"`awk '{ print $1}' <<< $SSH_CONNECTION`"@"
-	else
-		SSH_PREFIX=
-	fi
-
-	PS1="\n$SSH_PREFIX$USERNAME$HOST $WD $SCM $JOBS $EXIT_CODE${normal}\n $PROMPT_SYMBOL $PROMPT_FORMAT"
+	PS1="\n$USERNAME$HOST $WD $SCM $JOBS $TIME $EXIT_CODE${normal}\n $PROMPT_SYMBOL $PROMPT_FORMAT"
 	# set title bar
 	case "$TERM" in
 	    xterm*|rxvt*)
