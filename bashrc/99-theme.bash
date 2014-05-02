@@ -34,7 +34,7 @@ function git_prompt_vars {
 function scm {
   if which git &> /dev/null && [[ -n "$(git rev-parse HEAD 2> /dev/null)" ]]; then
 	git_prompt_vars
-	SCM="${green}|${green}$SCM_HEAD"
+	SCM="${green} |${green}$SCM_HEAD"
 	if [[ $SCM_GIT_STAGED_COUNT -gt 0 || $SCM_GIT_UNSTAGED_COUNT -gt 0 || $SCM_GIT_UNTRACKED_COUNT -gt 0 ]]; then
 		SCM="$SCM ${red}("
 		[[ $SCM_GIT_STAGED_COUNT -gt 0 ]] && SCM="$SCM${green}+"
@@ -72,7 +72,7 @@ function prompt_command() {
 		JOBS=
 	else
 		LAST_JOB=`jobs | awk '/^\[[0-9]+\]\+/ {print $3}'`
-		JOBS="${cyan}[\j∴$LAST_JOB]"
+		JOBS=" ${cyan}[\j∴$LAST_JOB]"
 	fi
 	
 	if [ $EXIT_STATUS == 0 ]; then
@@ -81,7 +81,7 @@ function prompt_command() {
 		EXIT_CODE="${white}${background_red}!!! Exited: $EXIT_STATUS !!!"
 	fi
 
-	PS1="\n$USERNAME$HOST $WD $SCM $JOBS $TIME $EXIT_CODE${normal}\n $PROMPT_SYMBOL $PROMPT_FORMAT"
+	PS1="\n$USERNAME$HOST $WD$SCM$JOBS $TIME $EXIT_CODE${normal}\n $PROMPT_SYMBOL $PROMPT_FORMAT"
 	# set title bar
 	case "$TERM" in
 	    xterm*|rxvt*)
