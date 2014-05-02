@@ -10,6 +10,7 @@
 	status = status -s -b
 	cl = clone
 	ci = commit
+	cia = commit -a
 	co = checkout
 	br = branch 
 	diff = diff --word-diff
