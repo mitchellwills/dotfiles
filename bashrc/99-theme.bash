@@ -12,11 +12,11 @@ function git_prompt_vars {
 
   local ref=$(git symbolic-ref HEAD 2> /dev/null)
   SCM_BRANCH=${ref#refs/heads/}
-  SCM_CHANGE=$(git rev-parse HEAD 2>/dev/null)
+  SCM_CHANGE=$(git rev-parse --short HEAD 2>/dev/null)
   if [ -z $SCM_BRANCH ]; then
 	SCM_HEAD=$SCM_CHANGE
   else
-	SCM_HEAD=$SCM_BRANCH
+	SCM_HEAD="$SCM_BRANCH${normal}:${purple}$SCM_CHANGE"
   fi
 
   SCM_GIT_AHEAD=''
