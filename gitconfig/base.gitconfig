@@ -15,6 +15,7 @@
 	br = branch 
 	diff = diff --word-diff
 	dc = diff --cached
+	unstage = reset HEAD --
 
 [color]
 	branch = auto
