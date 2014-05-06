@@ -71,8 +71,9 @@ function prompt_command() {
 	if [ $(jobs | wc -l) = 0 ]; then
 		JOBS=
 	else
-		LAST_JOB=`jobs | awk '/^\[[0-9]+\]\+/ {print $3}'`
-		JOBS=" ${cyan}[\j∴$LAST_JOB]"
+		JOBS=`jobs -l | awk "{ if(NR != 1) {printf \\" : \\"} if(\\$3 == \\"Running\\") {printf \\":green:\\"} else {printf \\":red:\\"} {printf \\$1 \\" \\" \\$2 \\" \\" \\$4 \\":normal:\\"} }"`
+		JOBS="$(echo $JOBS | sed 's/:green:/\\[\\e[0;32m\\]/g' | sed 's/:red:/\\[\\e[0;31m\\]/g' | sed 's/:normal:/\\[\\e[0m\\]/g')"
+		JOBS="$JOBS\n"
 	fi
 	
 	if [ $EXIT_STATUS == 0 ]; then
@@ -81,7 +82,7 @@ function prompt_command() {
 		EXIT_CODE="${white}${background_red}!!! Exited: $EXIT_STATUS !!!"
 	fi
 
-	PS1="\n$USERNAME$HOST $WD$SCM$JOBS $TIME $EXIT_CODE${normal}\n $PROMPT_SYMBOL $PROMPT_FORMAT"
+	PS1="\n$JOBS$USERNAME$HOST $WD$SCM $TIME $EXIT_CODE${normal}\n ${normal}$PROMPT_SYMBOL $PROMPT_FORMAT"
 	# set title bar
 	case "$TERM" in
 	    xterm*|rxvt*)
