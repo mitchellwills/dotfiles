@@ -1,17 +1,25 @@
 #!/bin/bash
 
 ROOT_PATH="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-SYSTEM_TAGS=( 'ros' )
+SYSTEM_TAGS=( `cat ~/.system.conf 2>/dev/null ` )
 BUILD_DIR=$ROOT_PATH/build
 
 rm -fr $BUILD_DIR
 mkdir $BUILD_DIR
 
 for dir in $ROOT_PATH/*; do
-	if [ -f $dir/build.sh ]; then
-		echo "Building $dir"
-		$dir/build.sh $dir $BUILD_DIR ${SYSTEM_TAGS[@]}
+	NAME=`basename $dir`
+	NAME_WITHOUT_TAGS=`$ROOT_PATH/tools/contains_tags.py $NAME $SYSTEM_TAGS`
+	INCLUDE_DIR=$?
+	if [[ $INCLUDE_DIR -eq '0' ]]; then
+		if [ -f $dir/build.sh ]; then
+			echo "Building $dir"
+			$dir/build.sh $dir $NAME_WITHOUT_TAGS $BUILD_DIR $ROOT_PATH ${SYSTEM_TAGS[@]}
+		fi
+	else
+		echo "Excluding: $dir"
 	fi
+
 done
 
 

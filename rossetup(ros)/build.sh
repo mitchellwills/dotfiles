@@ -1,0 +1,1 @@
+../tools/dot-symlink-append.sh
