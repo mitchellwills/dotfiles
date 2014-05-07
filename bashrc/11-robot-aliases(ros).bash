@@ -1,0 +1,1 @@
+alias aero="ssh aero@srr.wpi.edu"
