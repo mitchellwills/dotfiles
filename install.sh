@@ -1,7 +1,7 @@
 #!/bin/bash
 
 ROOT_PATH="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-
+SYSTEM_TAGS=( 'ros' )
 BUILD_DIR=$ROOT_PATH/build
 
 rm -fr $BUILD_DIR
@@ -10,7 +10,7 @@ mkdir $BUILD_DIR
 for dir in $ROOT_PATH/*; do
 	if [ -f $dir/build.sh ]; then
 		echo "Building $dir"
-		$dir/build.sh $dir $BUILD_DIR
+		$dir/build.sh $dir $BUILD_DIR ${SYSTEM_TAGS[@]}
 	fi
 done
 
