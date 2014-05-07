@@ -1,1 +1,1 @@
-#init ros stuff
+source ~/.rossetup

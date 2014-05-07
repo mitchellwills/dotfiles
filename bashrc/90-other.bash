@@ -31,19 +31,8 @@ if ! shopt -oq posix; then
 fi
 
 
-if [ -f ~/.rossetup ]; then
-    source ~/.rossetup
-fi
-
 if [ -f ~/.local.bashrc ]; then
     source ~/.local.bashrc
 fi
 
 
-function r(){
-	(
-		cd "$(dirname "$(readlink ~/.bashrc)")/.."
-		./install.sh
-	)
-	source ~/.bashrc
-}
