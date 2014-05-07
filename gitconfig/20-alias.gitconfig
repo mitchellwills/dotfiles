@@ -16,15 +16,3 @@
 	diff = diff --word-diff
 	dc = diff --cached
 	unstage = reset HEAD --
-
-[color]
-	branch = auto
-	diff = auto
-	interactive = auto
-	status = auto
-
-[user]
-	name = Mitchell Wills
-	email = mwills@wpi.edu
-[push]
-	default = simple
