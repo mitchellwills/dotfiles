@@ -19,6 +19,7 @@ for file in $FILES; do
 	if [[ $INCLUDE_FILE -eq '0' ]]; then
 		echo "	Including: $file"
 		cat $file >> $OUT_FILE;
+		echo "" >> $OUT_FILE;
 	else
 		echo "	Excluding: $file"
 	fi
