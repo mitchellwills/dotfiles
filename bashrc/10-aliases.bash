@@ -4,9 +4,17 @@ alias ll='ls -AlF'
 alias lr='ll -R'           #  Recursive ls.
 alias tree='tree -Csu'    #  Nice alternative to 'recursive ls' ...
 
+
+alias ls='ls --color=always -h'
+alias grep='grep --color=always'
+alias fgrep='fgrep --color=always'
+alias egrep='egrep --color=always'
+alias mkdir='mkdir -p' #recursive directory make
+alias less='less -R'
+
+
 alias rmtmp='rm -f *~;rm -f .*~'
 
-alias mkdir='mkdir -p' #recursive directory make
 
 alias ..='cd ..'
 alias ...='cd ../..'
@@ -24,7 +32,6 @@ alias when=date
 alias e=$EDITOR
 
 # Add colors for filetype and  human-readable sizes by default on 'ls':
-alias ls='ls -h --color'
 
 
 alias ccc='ssh mwills@ccc.wpi.edu'
