@@ -12,9 +12,9 @@ for dir in $ROOT_PATH/*; do
 	NAME_WITHOUT_TAGS=`$ROOT_PATH/tools/contains_tags.py $NAME $SYSTEM_TAGS`
 	INCLUDE_DIR=$?
 	if [[ $INCLUDE_DIR -eq '0' ]]; then
-		if [ -f $dir/build.sh ]; then
+		if [ -f $dir/build ]; then
 			echo "Building $dir"
-			$dir/build.sh $dir $NAME_WITHOUT_TAGS $BUILD_DIR $ROOT_PATH ${SYSTEM_TAGS[@]}
+			$dir/build $dir $NAME_WITHOUT_TAGS $BUILD_DIR $ROOT_PATH ${SYSTEM_TAGS[@]}
 		fi
 	else
 		echo "Excluding: $dir"

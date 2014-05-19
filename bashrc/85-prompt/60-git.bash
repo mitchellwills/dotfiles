@@ -1,12 +1,3 @@
-SCM_SYMBOL=$'±'
-SCM_DIRTY_SYMBOL="${red}✗"
-SCM_CLEAN_SYMBOL="${green}✓"
-
-DOWN_ARROW_SYMBOL=$'\xe2\x86\x93'
-RIGHT_ARROW_SYMBOL=$'\xe2\x86\x92'
-UP_ARROW_SYMBOL=$'\xe2\x86\x91'
-LEFT_ARROW_SYMBOL=$'\xe2\x86\x90'
-
 function git_prompt_vars {
   local status="$(git status -bs --porcelain 2> /dev/null)"
 
@@ -31,6 +22,7 @@ function git_prompt_vars {
   SCM_GIT_UNSTAGED_COUNT="$(tail -n +2 <<< "${status}" | grep ^.[^[:space:]?]  | wc -l | tr -d ' ')"
   SCM_GIT_UNTRACKED_COUNT="$(tail -n +2 <<< "${status}" | grep ^??  | wc -l | tr -d ' ')"
 }
+
 function scm {
   if which git &> /dev/null && [[ -n "$(git rev-parse HEAD 2> /dev/null)" ]]; then
 	git_prompt_vars
@@ -53,45 +45,3 @@ function scm {
   fi
 }
 
-
-PROMPT_SYMBOL="${normal}\$"
-PROMPT_FORMAT="${normal}"
-
-USERNAME="${yellow}\u"
-HOST="${normal}@\h"
-WD="${blue}[\w]"
-TIME="${orange}\t"
-
-
-function prompt_command() {
-	EXIT_STATUS=$?
-	[ -n "$TMUX" ] && tmux_env_update
-	scm
-	
-	if [ $(jobs | wc -l) = 0 ]; then
-		JOBS=
-	else
-		JOBS=`jobs -l | awk "{ if(NR != 1) {printf \\" : \\"} if(\\$3 == \\"Running\\") {printf \\":green:\\"} else {printf \\":red:\\"} {printf \\$1 \\" \\" \\$2 \\" \\" \\$4 \\":normal:\\"} }"`
-		JOBS="$(echo $JOBS | sed 's/:green:/\\[\\e[0;32m\\]/g' | sed 's/:red:/\\[\\e[0;31m\\]/g' | sed 's/:normal:/\\[\\e[0m\\]/g')"
-		JOBS="$JOBS\n"
-	fi
-	
-	if [ $EXIT_STATUS == 0 ]; then
-		EXIT_CODE=
-	else
-		EXIT_CODE="${white}${background_red}!!! Exited: $EXIT_STATUS !!!"
-	fi
-
-	PS1="\n$JOBS$USERNAME$HOST $WD$SCM $TIME $EXIT_CODE${normal}\n ${normal}$PROMPT_SYMBOL $PROMPT_FORMAT"
-	# set title bar
-	case "$TERM" in
-	    xterm*|rxvt*)
-		PS1="\[\e]0;\u@\h: \w\a\]$PS1"
-		;;
-	    *)
-		;;
-	esac
-	
-}
-
-PROMPT_COMMAND=prompt_command;
