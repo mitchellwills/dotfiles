@@ -16,7 +16,7 @@ function prompt_command() {
 	
 	JOBS=`jobs -l`
 
-	JOBS="$(echo "$JOBS" | perl -pe 's|(.+)Running\s+|\\[\\e[0;32m\\]\1 |g;' -pe 's|(.+)Stopped\s+|\\[\\e[0;31m\\]\1 |g;')"
+	JOBS="$(echo "$JOBS" | perl -pe 's|(.+)Running\s+|\\[\\e[0;32m\\]\1 |g;' -pe 's|(.+)Stopped\s+|\\[\\e[0;31m\\]\1 |g;' -pe 's|(.+)Killed\s+|\\[\\e[0;35m\\]\1 |g;')"
 	
 	if [ $EXIT_STATUS == 0 ]; then
 		EXIT_CODE=
