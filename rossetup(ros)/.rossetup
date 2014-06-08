@@ -13,7 +13,7 @@ declare -A robots=(
     ["thor"]="192.168.1.5"
     ["hawkeye"]="192.168.1.6"
     ["blackwidow"]="192.168.1.7"
-    ["aero"]="130.215.23.46"
+    ["aero"]="130.215.16.48"
     )   # List of robot names and their ip addresses
 settingsFile="$HOME/.rossetup-settings"  # File name to store env vars
 rosVersion="hydro" #the ros version used in hack workspaces
