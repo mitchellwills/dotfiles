@@ -55,12 +55,12 @@ function __rossetup-set-local-interface(){
     local interface=$1
     
     # check if the interface exists
-    local found=`ifconfig | egrep "^$interface\s"`
+    local found=`ifconfig | egrep --color=never "^$interface\s"`
 
     # if the interface was found
     if [[ ! -z $found ]]; then
         # extract the ip address of an interface and cut addr:from the begining
-	local my_ip=`ifconfig $interface | egrep -o 'addr:[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}' | cut -c6- `
+	local my_ip=`ifconfig $interface | egrep --color=never -o 'addr:[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}' | cut -c6- `
 	if [ -z "$my_ip" ]; then
 	    echo -ne "\E[33mWARNING:"; tput sgr0
 	    echo " Unable to find an ip address for the interface: $interface"
@@ -85,7 +85,7 @@ function __rossetup-set-local-auto(){
 	__rossetup-set-local-hostname "localhost"
     else
         # make : seperated list of active interfaces excluding lo
-	local connected_ifs=`ifconfig | egrep -B1 'addr:[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}' | egrep -o '^\S+' | sed '/--/d' | sed '/lo/d' | tr '\n' ':' | sed -e 's/:$//'`
+	local connected_ifs=`ifconfig | egrep --color=never -B1 'addr:[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}' | egrep --color=never -o '^\S+' | sed '/--/d' | sed '/lo/d' | tr '\n' ':' | sed -e 's/:$//'`
         # if the active connections list is not empty
 	if [[ ! -z $connected_ifs ]]; then
 	    local connected_count=`echo $connected_ifs | tr -cd ':' | wc -c`
@@ -97,11 +97,11 @@ function __rossetup-set-local-auto(){
 	    
 	    for interface in "${interfaces[@]}"
 	    do
-		local if_ip_str=`ifconfig $interface | egrep -o 'addr:[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}' | cut -c6- `
-		local if_mask_str=`ifconfig $interface | egrep -o 'Mask:[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}' | cut -c6- `
+		local if_ip_str=`ifconfig $interface | egrep --color=never -o 'addr:[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}' | cut -c6- `
+		local if_mask_str=`ifconfig $interface | egrep --color=never -o 'Mask:[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}' | cut -c6- `
 		local robot_ip_str;
 		if ! is_ip $rossetup_robot_ip_config; then
-		    local tmp_robot_ip=`host $rossetup_robot_ip_config | grep -m1 "has address" | awk '{print $NF}'`
+		    local tmp_robot_ip=`host $rossetup_robot_ip_config | grep --color=never -m1 "has address" | awk '{print $NF}'`
 		    if is_ip $tmp_robot_ip; then
 			robot_ip_str=$tmp_robot_ip
 		    else
@@ -323,7 +323,7 @@ function ros-status(){
     local robot_host=""
     # if the robot hostname is not an ip address then try to resolve it to an ip
     if ! is_ip $rossetup_robot_ip_config ; then
-	local tmp_robot_ip=`host $rossetup_robot_ip_config | grep -m1 "has address" | awk '{print $NF}'`
+	local tmp_robot_ip=`host $rossetup_robot_ip_config | grep --color=never -m1 "has address" | awk '{print $NF}'`
 	if is_ip $tmp_robot_ip; then
 	    robot_ip=$tmp_robot_ip
 	fi
@@ -342,7 +342,7 @@ function ros-status(){
     local host_if=""
     # if the hostname is not an ip address then try to resolve it to an ip
     if ! is_ip $ROS_HOSTNAME ; then
-	local tmp_host_ip=`host $ROS_HOSTNAME | grep -m1 "has address" | awk '{print $NF}'`
+	local tmp_host_ip=`host $ROS_HOSTNAME | grep --color=never -m1 "has address" | awk '{print $NF}'`
 	if is_ip $tmp_host_ip; then
 	    host_ip=$tmp_host_ip
 	fi
@@ -355,7 +355,7 @@ function ros-status(){
 	fi
     fi
     if is_ip $host_ip; then
-	host_if=`ifconfig | grep -B1 "$host_ip" | head -n1 | awk '{print $1}'`
+	host_if=`ifconfig | grep --color=never -B1 "$host_ip" | head -n1 | awk '{print $1}'`
     fi
 
     echo -ne "ROS_MASTER_URI="
