@@ -2,9 +2,6 @@
 # Settings are percisted through two settings files configured below
 # Author: Mitchell Wills
 
-#needed for tab completion to work properly (does not work if set to utf8)
-export LANG=C
- 
 # Configuration
 declare -A robots=(
     ["hulk"]="192.168.1.2"
