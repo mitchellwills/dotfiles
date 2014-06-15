@@ -17,6 +17,11 @@ function git_prompt_vars {
   [[ "${status}" =~ ${ahead_re} ]] && SCM_GIT_AHEAD="${BASH_REMATCH[1]}"
   [[ "${status}" =~ ${behind_re} ]] && SCM_GIT_BEHIND="${BASH_REMATCH[1]}"
 
+  SCM_GIT_UPSTREAM_REMOTE=''
+  SCM_GIT_UPSTREAM_BRANCH=''
+  local upstream_re='.+\.\.\.([a-z]+)/([a-z]+).+'
+  [[ "${status}" =~ ${upstream_re} ]] && SCM_GIT_UPSTREAM_REMOTE="${BASH_REMATCH[1]}" && SCM_GIT_UPSTREAM_BRANCH="${BASH_REMATCH[2]}"
+
   SCM_GIT_STASH_COUNT="$(git stash list 2> /dev/null | wc -l | tr -d ' ')"
   SCM_GIT_STAGED_COUNT="$(tail -n +2 <<< "${status}" | grep -v ^[[:space:]?]  | wc -l | tr -d ' ')"
   SCM_GIT_UNSTAGED_COUNT="$(tail -n +2 <<< "${status}" | grep ^.[^[:space:]?]  | wc -l | tr -d ' ')"
@@ -39,6 +44,7 @@ function scm {
 	[[ $SCM_GIT_BEHIND -gt 0 ]] && SCM=" $SCM ${red}$DOWN_ARROW_SYMBOL$SCM_GIT_BEHIND"
 	[[ $SCM_GIT_AHEAD -gt 0 && $SCM_GIT_BEHIND -eq 0 ]] && SCM="$SCM${cyan}"
 	[[ $SCM_GIT_AHEAD -gt 0 ]] && SCM="$SCM $UP_ARROW_SYMBOL$SCM_GIT_AHEAD"
+	[[ -z $SCM_GIT_UPSTREAM_REMOTE ]] && SCM="$SCM ${blue}$UP_ARROW_SYMBOL?"
 	[[ $SCM_GIT_STASH_COUNT -gt 0 ]] && SCM="$SCM ${yellow}(stash: $SCM_GIT_STASH_COUNT)"
 	SCM="$SCM${green}|"
   else SCM=""
