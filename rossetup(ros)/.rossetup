@@ -13,7 +13,7 @@ declare -A robots=(
     ["aero"]="130.215.16.48"
     )   # List of robot names and their ip addresses
 settingsFile="$HOME/.rossetup-settings"  # File name to store env vars
-rosVersion="hydro" #the ros version used in hack workspaces
+rosVersion="indigo" #the ros version used in hack workspaces
 
 
 
