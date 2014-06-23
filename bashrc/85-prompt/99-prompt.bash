@@ -4,7 +4,7 @@ PROMPT_FORMAT="${normal}"
 USERNAME="${yellow}\u"
 HOST="${normal}@\h"
 WD="${blue}[\w]"
-TIME="${orange}\t"
+TIME="${bold_red}\t"
 
 
 function prompt_command() {
@@ -21,7 +21,7 @@ function prompt_command() {
 	if [ $EXIT_STATUS == 0 ]; then
 		EXIT_CODE=
 	else
-		EXIT_CODE="${white}${background_red}!!! Exited: $EXIT_STATUS !!!"
+		EXIT_CODE="${bold_white}${background_red}!!! Exited: $EXIT_STATUS !!!"
 	fi
 
 	PS1="\n$JOBS\n$USERNAME$HOST $WD$SCM $TIME $EXIT_CODE${normal}\n ${normal}$PROMPT_SYMBOL $PROMPT_FORMAT"
