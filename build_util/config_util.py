@@ -31,12 +31,13 @@ def load_config_file(filename, config_dict):
                 config_dict[parts[0]] = parts[2]
             elif parts[1] == '+=':
                 collection = config_dict.get(parts[0])
+                collection_values = [part.strip() for part in parts[2].split(',')]
                 if collection is None:
                     print 'no collection defined'
                 elif type(collection) is set:
-                    config_dict[parts[0]].add(parts[2])
+                    config_dict[parts[0]].update(collection_values)
                 elif type(collection) is list:
-                    config_dict[parts[0]].append(parts[2])
+                    config_dict[parts[0]].extend(collection_values)
                 else:
                     print 'unknown collection type: ' + str(type(collection))
             elif parts[1] == ':=':

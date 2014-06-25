@@ -4,6 +4,8 @@ import shutil
 import imp
 import sys
 import glob
+import subprocess
+import argparse
 
 BUILD_UTIL_DIR_NAME = 'build_util'
 
@@ -88,6 +90,13 @@ def process_folder(name, path, builddir, config):
     
 
 def main():
+    parser = argparse.ArgumentParser(description='Install dotfiles')
+    parser.add_argument('--no-update', help="don't run apt-get update", action='store_true')
+    parser.add_argument('--no-install', help="don't run apt-get install", action='store_true')
+
+    args = parser.parse_args()
+    print args
+
     print 'building dotfiles'
     rootdir = os.path.dirname(os.path.realpath(__file__))
     print 'Root Dir: ', rootdir
@@ -107,6 +116,13 @@ def main():
         fullpath = os.path.join(rootdir, filename)
         if os.path.isdir(fullpath) and filename != BUILD_DIR_NAME and filename != BUILD_UTIL_DIR_NAME and not filename.startswith('.') and not filename == 'tools':
             process_folder(filename, fullpath, builddir, config)
+
+    if not args.no_update:
+        subprocess.call(['sudo', 'apt-get', '-y', 'update'])
+    if not args.no_install:
+        install_command = ['sudo', 'apt-get', '-y', 'install']
+        install_command.extend(config.apt_get.install)
+        subprocess.call(install_command)
 
 if __name__ == "__main__":
     main()
