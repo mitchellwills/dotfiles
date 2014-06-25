@@ -1,6 +1,19 @@
 import os
 import re
+import subprocess
 
+def execute_with_stdout(command):
+    p = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    out, err = p.communicate()
+    return out
+
+def parse_value(val):
+    if val.lower() == 'true':
+        return True
+    elif val.lower() == 'false':
+        return False
+    return val
+    
 class Config(object):
     def __init__(self, d, prefix):
         self._d = d
@@ -28,10 +41,10 @@ def load_config_file(filename, config_dict):
             parts = re.split('\s*([\+:]?=)\s*', stripped_line, 1)
             
             if parts[1] == '=':
-                config_dict[parts[0]] = parts[2]
+                config_dict[parts[0]] = parse_value(parts[2])
             elif parts[1] == '+=':
                 collection = config_dict.get(parts[0])
-                collection_values = [part.strip() for part in parts[2].split(',')]
+                collection_values = [parse_value(part.strip()) for part in parts[2].split(',')]
                 if collection is None:
                     print 'no collection defined'
                 elif type(collection) is set:
@@ -52,6 +65,9 @@ def load_configs(filenames):
     config_dict = dict()
     for filename in filenames:
         load_config_file(filename, config_dict)
+
+    config_dict['system.distributor_id'] = execute_with_stdout(['lsb_release', '-is']).strip()
+    config_dict['system.codename'] = execute_with_stdout(['lsb_release', '-cs']).strip()
 
     print 'loaded config: '+str(config_dict)
     return Config(config_dict, '')
