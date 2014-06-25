@@ -150,15 +150,17 @@ def main():
                 print 'ROS repo already installed'
 
             install_command.append('ros-'+config.ros.version+'-desktop-full')
+            install_command.extend(['ros-'+config.ros.version+'-'+package.replace('_', '-') for package in config.ros.packages.install])
             install_command.append('python-catkin-lint')
             install_command.append('python-rosinstall')
+            install_command.append('python-wstool')
             
 
         if args.update:
             subprocess.call(['sudo', 'apt-get', '-y', 'update'])
         subprocess.call(install_command)
 
-        if config.ros.install:
+        if config.ros.install and args.update:
             if subprocess.call('rosdep update 2>/dev/null', shell=True) != 0:
                 subprocess.call(['sudo', 'rosdep', 'init'])
                 subprocess.call(['rosdep', 'update'])
