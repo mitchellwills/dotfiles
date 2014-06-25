@@ -10,8 +10,6 @@ TIME="${bold_red}\t"
 function prompt_command() {
 	EXIT_STATUS=$?
 
-	[ -n "$TMUX" ] && tmux_env_update
-
 	scm
 	
 	JOBS=`jobs -l`
