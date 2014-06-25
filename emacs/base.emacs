@@ -7,4 +7,8 @@
 (setq auto-mode-alist (cons '("\\.launch$" . xml-mode) auto-mode-alist))
 (setq auto-mode-alist (cons '("\\.bashrc$" . shell-script-mode) auto-mode-alist))
 
+(global-set-key (kbd "C-x |") 'split-window-horizontally)
+(global-set-key (kbd "C-x _") 'split-window-vertically)
+(global-set-key (kbd "C-x &") 'delete-window)
+
 (global-font-lock-mode 1)
