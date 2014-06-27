@@ -43,7 +43,7 @@ def config(obj, config):
 
     obj._()
     obj.set_window_option('monitor-activity', 'on')
-    obj.set_option('visual_activity', 'on')
+    obj.set_option('visual-activity', 'on')
 
 def build(obj, builddir):
     with open(os.path.join(builddir, '.tmux.conf'), 'w') as f:
