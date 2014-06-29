@@ -38,6 +38,9 @@ def config(obj, config):
     obj.set_option('status-fg', 'white')
 
     obj._()
+    obj.set_option('base-index', '1')
+
+    obj._()
     obj.comment('Highlight active window')
     obj.set_window_option('window-status-current-bg', 'red')
 
