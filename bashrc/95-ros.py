@@ -3,19 +3,11 @@ import os
 import shutil
 from build_util import *
 from install_util import *
+from module_base import *
 
 
-def config(obj, config):
-    if config.ros.install:
-        obj.code('source ~/.rossetup')
-        obj.install = True
-    else:
-        obj.install = False
+class Rossetup(ModuleBase):
+    def do_init(self):
+        if self.config.ros.install:
+            self.def_file_processor_for_file('.rossetup', HomeSymlinkFileProcessor())
 
-def build(obj, builddir):
-    if obj.install:
-        shutil.copy2(os.path.join(os.path.dirname(__file__), '.rossetup'), os.path.join(builddir, '.rossetup'))
-
-def install(obj, builddir):
-    if obj.install:
-        install_symlink_in_home('.rossetup', os.path.join(builddir, '.rossetup'))

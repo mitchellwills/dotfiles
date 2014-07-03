@@ -2,6 +2,7 @@ from __future__ import absolute_import
 import os
 from build_util import *
 from install_util import *
+from module_base import *
 
 class BashFileContents():
     def __init__(self, filepath):
@@ -39,35 +40,34 @@ def quote_and_escape(value):
     return "'"+value+"'"
     
 
-def config_file(obj, filepath):
-    if filepath.endswith('.bash'):
-        obj.add_command(BashFileContents(filepath))
-
-def init(obj):
-    obj.commands = []
-    obj.add_command = lambda command: obj.commands.append(command)
-    obj.code = lambda code: obj.add_command(BashCode(code))
-
-    obj.setopt = lambda opt: obj.code('shopt -s '+opt)
-    obj.assign = lambda name, value: obj.code(name+'='+value)
-
-    obj.alias = lambda name, value, comment = None: obj.add_command(BashAlias(name, quote_and_escape(value), comment))
-    obj.alias_raw = lambda name, value, comment = None: obj.add_command(BashAlias(name, value, comment))
-
-    obj.comment = lambda comment: obj.add_command(BashComment(comment))
-    obj._ = lambda: obj.add_command(BashEmptyLine())
-
-    obj.__config_file__ = lambda obj, config, filepath: config_file(obj, filepath)
 
 
-def config(obj, config):
-    pass
 
-def build(obj, builddir):
-    with open(os.path.join(builddir, '.bashrc'), 'w') as f:
-        f.write(open(os.path.join(builddir, '.bashrc'), 'r').read())
-        for command in obj.commands:
-            f.write(command.build()+'\n')
+class Bashrc(ModuleBase):
+    def do_init(self):
+        commands = []
+        self.def_common('commands', commands)
+        self.def_common('add_command', lambda command: commands.append(command))
+        self.def_common('code', lambda code: self.add_command(BashCode(code)))
 
-def install(obj, builddir):
-    install_symlink_in_home('.bashrc', os.path.join(builddir, '.bashrc'))
+        self.def_common('setopt', lambda opt: self.code('shopt -s '+opt))
+        self.def_common('assign', lambda name, value: self.code(name+'='+value))
+
+        self.def_common('alias', lambda name, value, comment = None: self.add_command(BashAlias(name, quote_and_escape(value), comment)))
+        self.def_common('alias_raw', lambda name, value, comment = None: self.add_command(BashAlias(name, value, comment)))
+
+        self.def_common('comment', lambda comment: self.add_command(BashComment(comment)))
+        self.def_common('_', lambda: self.add_command(BashEmptyLine()))
+
+        self.def_file_processor_for_regex_match('.*/.*\.bash', CustomFileProcessor(config=lambda filepath, context: self.do_config_file(filepath, context)))
+
+    def do_config_file(self, filepath, context):
+        self.add_command(BashFileContents(filepath))
+
+    def do_build(self):
+        with open(self.build_file('.bashrc'), 'a') as f:
+            for command in self.commands:
+                f.write(command.build()+'\n')
+
+    def do_install(self):
+        install_symlink_in_home('.bashrc', self.build_file('.bashrc'))

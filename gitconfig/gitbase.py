@@ -2,6 +2,7 @@ from __future__ import absolute_import
 import os
 from collections import OrderedDict
 from install_util import *
+from module_base import *
 
 
 class GitConfigEntry:
@@ -9,40 +10,41 @@ class GitConfigEntry:
         self.value = value
         self.comment = comment
 
-def init(obj):
-    def add_config(name, value, comment = None):
-        name_split = name.split('.')
-        category = name_split[0]
-        key = name_split[1]
-        if not hasattr(obj, 'data'):
-            obj.data = OrderedDict()
-        if not category in obj.data:
-            obj.data[category] = OrderedDict()
-        obj.data[category][key] = GitConfigEntry(value, comment)
+class GitConfig(ModuleBase):
+    def do_init(self):
+        data = OrderedDict()
+
+        def add_config(name, value, comment = None):
+            name_split = name.split('.')
+            category = name_split[0]
+            key = name_split[1]
+            if not category in data:
+                data[category] = OrderedDict()
+            data[category][key] = GitConfigEntry(value, comment)
         
-    obj.add_config = add_config
+        self.def_common('data', data)
+        self.def_common('add_config', add_config)
 
-def config(obj, config):
-    obj.add_config('user.name', config.identity.name)
-    obj.add_config('user.email', config.identity.email)
+    def do_config(self):
+        self.add_config('user.name', self.config.identity.name)
+        self.add_config('user.email', self.config.identity.email)
 
-    obj.add_config('color.branch', 'auto')
-    obj.add_config('color.diff', 'auto')
-    obj.add_config('color.interactive', 'auto')
-    obj.add_config('color.status', 'auto')
+        self.add_config('color.branch', 'auto')
+        self.add_config('color.diff', 'auto')
+        self.add_config('color.interactive', 'auto')
+        self.add_config('color.status', 'auto')
 
-    obj.add_config('push.default', 'simple')
+        self.add_config('push.default', 'simple')
 
-def build(obj, builddir):
-    if hasattr(obj, 'data'):
-        with open(os.path.join(builddir, '.gitconfig'), 'w') as f:
-            for category in obj.data:
+    def do_build(self):
+        with open(self.build_file('.gitconfig'), 'w') as f:
+            for category in self.data:
                 f.write('['+category+']\n')
-                for key, entry in obj.data[category].iteritems():
+                for key, entry in self.data[category].iteritems():
                     if entry.comment:
                         f.write('\t# '+entry.comment+'\n')
                     f.write('\t'+key+' = '+entry.value+'\n')
                 f.write('\n')
 
-def install(obj, builddir):
-    install_symlink_in_home('.gitconfig', os.path.join(builddir, '.gitconfig'))
+    def do_install(self):
+        install_symlink_in_home('.gitconfig', self.build_file('.gitconfig'))

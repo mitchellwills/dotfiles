@@ -2,12 +2,12 @@ from __future__ import absolute_import
 import os
 from build_util import *
 from install_util import *
+from module_base import *
+
+class Emacs(ModuleBase):
+    def do_init(self):
+        self.def_file_processor_for_regex_match('.+/.*\.emacs', AmendBuildFileProcessor('.emacs'))
 
 
-def build(obj, builddir):
-    with open(os.path.join(builddir, '.emacs'), 'w') as f:
-        emacs_file_spec = os.path.join(os.path.dirname(__file__), '*.emacs')
-        f.write(concat_files(emacs_file_spec))
-
-def install(obj, builddir):
-    install_symlink_in_home('.emacs', os.path.join(builddir, '.emacs'))
+    def do_install(self):
+        install_symlink_in_home('.emacs', self.build_file('.emacs'))

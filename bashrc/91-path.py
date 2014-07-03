@@ -1,3 +1,6 @@
+from __future__ import absolute_import
+from module_base import *
+
 class BashPath:
     def __init__(self, var):
         self.path_entries = []
@@ -11,19 +14,22 @@ class BashPath:
             return 'export '+self.var+'='+new_path
         return ''
 
-def init(obj):
-    obj.bash_path = BashPath('PATH')
-    obj.bash_ldpath = BashPath('LD_LIBRARY_PATH')
-    obj.add_path = lambda path_entry: obj.bash_path.path_entries.append(path_entry)
-    obj.add_ldpath = lambda path_entry: obj.bash_ldpath.path_entries.append(path_entry)
+class BashrcPath(ModuleBase):
+    def do_init(self):
+        bash_path = BashPath('PATH')
+        bash_ldpath = BashPath('LD_LIBRARY_PATH')
+        self.def_common('bash_path', bash_path)
+        self.def_common('bash_ldpath', bash_ldpath)
+        self.def_common('add_path', lambda path_entry: obj.bash_path.path_entries.append(path_entry))
+        self.def_common('add_ldpath', lambda path_entry: obj.bash_ldpath.path_entries.append(path_entry))
 
-def config(obj, config):
-    obj.add_command(obj.bash_path)
-    obj.add_command(obj.bash_ldpath)
+    def do_config(self):
+        self.add_command(self.bash_path)
+        self.add_command(self.bash_ldpath)
 
-    for path in config.bash.path:
-        obj.add_path(path)
+        for path in self.config.bash.path:
+            self.add_path(path)
 
-    for path in config.bash.ldpath:
-        obj.add_ldpath(path)
+        for path in self.config.bash.ldpath:
+            self.add_ldpath(path)
 

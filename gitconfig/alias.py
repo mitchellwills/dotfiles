@@ -1,20 +1,25 @@
-def init(obj):
-    obj.add_alias = lambda name, value, comment = None: obj.add_config('alias.'+name, value, comment)
+from __future__ import absolute_import
+from module_base import *
 
-def config(obj, config):
-    obj.add_alias('tree', "log --graph --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cblue[%cn] %Cgreen(%cr)%Creset' --abbrev-commit --date=relative")
-    obj.add_alias('lol',  "log --graph --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cblue[%cn] %Cgreen(%cr)%Creset' --abbrev-commit --date=relative")
-    obj.add_alias('lola', "log --graph --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cblue[%cn] %Cgreen(%cr)%Creset' --abbrev-commit --date=relative --all")
 
-    obj.add_alias('publish', '!sh -c \"git push -u origin $(git rev-parse --abbrev-ref HEAD)\"', 'pushes a new branch to origin')
+class GitConfigAlias(ModuleBase):
+    def do_init(self):
+        self.def_common('add_alias', lambda name, value, comment = None: self.add_config('alias.'+name, value, comment))
 
-    obj.add_alias('cp', "cherry-pick")
-    obj.add_alias('st', "status -s -b")
-    obj.add_alias('cl', "clone")
-    obj.add_alias('ci', "commit")
-    obj.add_alias('cia', "commit -a")
-    obj.add_alias('co', "checkout")
-    obj.add_alias('br', "branch")
-    obj.add_alias('diff', "diff --word-diff")
-    obj.add_alias('dc', "diff --cached")
-    obj.add_alias('unstage', "reset HEAD --")
+    def do_config(self):
+        self.add_alias('tree', "log --graph --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cblue[%cn] %Cgreen(%cr)%Creset' --abbrev-commit --date=relative")
+        self.add_alias('lol',  "log --graph --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cblue[%cn] %Cgreen(%cr)%Creset' --abbrev-commit --date=relative")
+        self.add_alias('lola', "log --graph --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cblue[%cn] %Cgreen(%cr)%Creset' --abbrev-commit --date=relative --all")
+
+        self.add_alias('publish', '!sh -c \"git push -u origin $(git rev-parse --abbrev-ref HEAD)\"', 'pushes a new branch to origin')
+
+        self.add_alias('cp', "cherry-pick")
+        self.add_alias('st', "status -s -b")
+        self.add_alias('cl', "clone")
+        self.add_alias('ci', "commit")
+        self.add_alias('cia', "commit -a")
+        self.add_alias('co', "checkout")
+        self.add_alias('br', "branch")
+        self.add_alias('diff', "diff --word-diff")
+        self.add_alias('dc', "diff --cached")
+        self.add_alias('unstage', "reset HEAD --")

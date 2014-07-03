@@ -7,52 +7,48 @@ import glob
 import subprocess
 import argparse
 
+
 BUILD_UTIL_DIR_NAME = 'build_util'
+rootdir = os.path.dirname(os.path.realpath(__file__))
+buildutildir = os.path.join(rootdir, BUILD_UTIL_DIR_NAME)
+sys.path.append(buildutildir)
+
+from config_util import load_configs
+import module_base
+
+
 
 BUILD_DIR_NAME = 'build'
 GIT_DIR_NAME = '.git'
 
-def load_module(name, path):
+bash_normal = '\033[0m'
+bash_red = '\033[0;31m'
+bash_green = '\033[0;32m'
+bash_yellow = '\033[0;33m'
+
+def load_py(name, path):
     return imp.load_source(name, path)
 
 
-class ModuleConfigurationProxy:
-    def __init__(self, module):
-        self.module = module
-    def init(self, data):
-        if hasattr(self.module, 'init'):
-            return self.module.init(data)
-    def config(self, data, config):
-        if hasattr(self.module, 'config'):
-            return self.module.config(data, config)
-    def build(self, data, builddir):
-        if hasattr(self.module, 'build'):
-            return self.module.build(data, builddir)
-    def install(self, data, builddir):
-        if hasattr(self.module, 'install'):
-            return self.module.install(data, builddir)
-
-class FileConfigurationProxy:
-    def __init__(self, filepath):
+class FileModule(module_base.ModuleBase):
+    def __init__(self, context, filepath):
+        module_base.ModuleBase.__init__(self, context)
         self.filepath = filepath
-    def init(self, data):
-        if hasattr(data, '__init_file__'):
-            return data.__init_file__(data, self.filepath)
-    def config(self, data, config):
-        if hasattr(data, '__config_file__'):
-            return data.__config_file__(data, config, self.filepath)
-    def build(self, data, builddir):
-        if hasattr(data, '__build_file__'):
-            return data.__build_file__(data, builddir, self.filepath)
-    def install(self, data, builddir):
-        if hasattr(data, '__install_file__'):
-            return data.__install_file__(data, builddir, self.filepath)
+        
+    def do_config(self):
+        self.get_file_processor(self.filepath).do_config(self.filepath, self.context)
 
-class FolderData: pass
+    def do_build(self):
+        self.get_file_processor(self.filepath).do_build(self.filepath, self.context)
+
+    def do_install(self):
+        self.get_file_processor(self.filepath).do_install(self.filepath, self.context)
+
+
 def process_folder(name, path, builddir, config):
     print '\t', name
     folder_builddir = builddir
-    data = FolderData()
+    common = module_base.ModuleCommon()
 
     config_mods = []
     files = [os.path.join(root, filename)
@@ -68,25 +64,37 @@ def process_folder(name, path, builddir, config):
         if not os.path.isfile(filepath):
             continue
 
-        print '\t\tUsing: '+filename
+        context = module_base.ModuleContext(os.path.dirname(filename), folder_builddir, config, common)
         if filename.endswith('.py'):
             try:
-                config_mod = ModuleConfigurationProxy(load_module(name+'.'+filename.replace('.py', ''), filepath))
-                config_mods.append(config_mod)
+                py_mod = load_py(name+'.'+filename.replace('.py', ''), filepath)
+                mod_found = False
+                for name in py_mod.__dict__:
+                    if name == 'ModuleBase':
+                        continue
+                    thing = py_mod.__dict__[name]
+                    #TODO figure out how to do class type instead of this
+                    if isinstance(thing, type(module_base.ModuleBase)) and issubclass(thing, module_base.ModuleBase):
+                        print bash_green+'\t\tUsing module: '+filename+':'+name+bash_normal
+                        mod_found = True
+                        config_mods.append(thing(context))
+                if not mod_found:
+                    print bash_red+'\t\tNo modules found in: '+filename+bash_normal
             except IOError as e:
                 print 'Error loading module', e
         else:
-            config_mod = FileConfigurationProxy(filepath)
-            config_mods.append(config_mod)
+            pass
+            print bash_green+'\t\tUsing File: '+filename+bash_normal
+            config_mods.append(FileModule(context, filepath))
             
     for mod in config_mods:
-        mod.init(data)
+        mod.do_init()
     for mod in config_mods:
-        mod.config(data, config)
+        mod.do_config()
     for mod in config_mods:
-        mod.build(data, folder_builddir)
+        mod.do_build()
     for mod in config_mods:
-        mod.install(data, folder_builddir)
+        mod.do_install()
 
 
 def prompt_yes_no(question):
@@ -113,13 +121,9 @@ def main():
         args.install = prompt_yes_no('install software?')
 
     print 'building dotfiles'
-    rootdir = os.path.dirname(os.path.realpath(__file__))
     print 'Root Dir: ', rootdir
 
-    buildutildir = os.path.join(rootdir, BUILD_UTIL_DIR_NAME)
-    sys.path.append(buildutildir)
-
-    config = __import__('config_util').load_configs([os.path.join(rootdir, 'base.conf'), os.path.expanduser('~/.dotfiles.conf')])
+    config = load_configs([os.path.join(rootdir, 'base.conf'), os.path.expanduser('~/.dotfiles.conf')])
 
     builddir = os.path.join(rootdir, BUILD_DIR_NAME)
 
