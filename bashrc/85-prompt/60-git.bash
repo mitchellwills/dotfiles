@@ -7,7 +7,7 @@ function git_prompt_vars {
   if [ -z $SCM_BRANCH ]; then
 	SCM_HEAD=$SCM_CHANGE
   else
-	SCM_HEAD="$SCM_BRANCH${normal}:${purple}$SCM_CHANGE"
+	SCM_HEAD="$SCM_BRANCH${bash_prompt_normal}:${bash_prompt_purple}$SCM_CHANGE"
   fi
 
   SCM_GIT_AHEAD=''
@@ -31,22 +31,22 @@ function git_prompt_vars {
 function scm {
   if which git &> /dev/null && [[ -n "$(git rev-parse HEAD 2> /dev/null)" ]]; then
 	git_prompt_vars
-	SCM="${green} |${green}$SCM_HEAD"
+	SCM="${bash_prompt_green} |${bash_prompt_green}$SCM_HEAD"
 	if [[ $SCM_GIT_STAGED_COUNT -gt 0 || $SCM_GIT_UNSTAGED_COUNT -gt 0 || $SCM_GIT_UNTRACKED_COUNT -gt 0 ]]; then
-		SCM="$SCM ${red}("
-		[[ $SCM_GIT_STAGED_COUNT -gt 0 ]] && SCM="$SCM${green}+"
-		[[ $SCM_GIT_UNSTAGED_COUNT -gt 0 ]] && SCM="$SCM${red}*"
-		[[ $SCM_GIT_UNTRACKED_COUNT -gt 0 ]] && SCM="$SCM${cyan}?"
-		SCM="$SCM${red})"
+		SCM="$SCM ${bash_prompt_red}("
+		[[ $SCM_GIT_STAGED_COUNT -gt 0 ]] && SCM="$SCM${bash_prompt_green}+"
+		[[ $SCM_GIT_UNSTAGED_COUNT -gt 0 ]] && SCM="$SCM${bash_prompt_red}*"
+		[[ $SCM_GIT_UNTRACKED_COUNT -gt 0 ]] && SCM="$SCM${bash_prompt_cyan}?"
+		SCM="$SCM${bash_prompt_red})"
 	else
 		SCM="$SCM $SCM_CLEAN_SYMBOL"
 	fi
-	[[ $SCM_GIT_BEHIND -gt 0 ]] && SCM=" $SCM ${red}$DOWN_ARROW_SYMBOL$SCM_GIT_BEHIND"
-	[[ $SCM_GIT_AHEAD -gt 0 && $SCM_GIT_BEHIND -eq 0 ]] && SCM="$SCM${cyan}"
+	[[ $SCM_GIT_BEHIND -gt 0 ]] && SCM=" $SCM ${bash_prompt_red}$DOWN_ARROW_SYMBOL$SCM_GIT_BEHIND"
+	[[ $SCM_GIT_AHEAD -gt 0 && $SCM_GIT_BEHIND -eq 0 ]] && SCM="$SCM${bash_prompt_cyan}"
 	[[ $SCM_GIT_AHEAD -gt 0 ]] && SCM="$SCM $UP_ARROW_SYMBOL$SCM_GIT_AHEAD"
-	[[ -z $SCM_GIT_UPSTREAM_REMOTE ]] && SCM="$SCM ${blue}$UP_ARROW_SYMBOL?"
-	[[ $SCM_GIT_STASH_COUNT -gt 0 ]] && SCM="$SCM ${yellow}(stash: $SCM_GIT_STASH_COUNT)"
-	SCM="$SCM${green}|"
+	[[ -z $SCM_GIT_UPSTREAM_REMOTE ]] && SCM="$SCM ${bash_prompt_blue}$UP_ARROW_SYMBOL?"
+	[[ $SCM_GIT_STASH_COUNT -gt 0 ]] && SCM="$SCM ${bash_prompt_yellow}(stash: $SCM_GIT_STASH_COUNT)"
+	SCM="$SCM${bash_prompt_green}|"
   else SCM=""
   fi
 }

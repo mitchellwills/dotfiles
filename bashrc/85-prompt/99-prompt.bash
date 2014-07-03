@@ -1,10 +1,10 @@
-PROMPT_SYMBOL="${normal}\$"
-PROMPT_FORMAT="${normal}"
+PROMPT_SYMBOL="${bash_prompt_normal}\$"
+PROMPT_FORMAT="${bash_prompt_normal}"
 
-USERNAME="${yellow}\u"
-HOST="${normal}@\h"
-WD="${blue}[\w]"
-TIME="${bold_red}\t"
+USERNAME="${bash_prompt_yellow}\u"
+HOST="${bash_prompt_normal}@\h"
+WD="${bash_prompt_blue}[\w]"
+TIME="${bash_prompt_bold_red}\t"
 
 
 function prompt_command() {
@@ -19,10 +19,10 @@ function prompt_command() {
 	if [ $EXIT_STATUS == 0 ]; then
 		EXIT_CODE=
 	else
-		EXIT_CODE="${bold_white}${background_red}!!! Exited: $EXIT_STATUS !!!"
+		EXIT_CODE="${bash_prompt_bold_white}${bash_prompt_background_red}!!! Exited: $EXIT_STATUS !!!"
 	fi
 
-	PS1="\n$JOBS\n$USERNAME$HOST $WD$SCM $TIME $EXIT_CODE${normal}\n ${normal}$PROMPT_SYMBOL $PROMPT_FORMAT"
+	PS1="\n$JOBS\n$USERNAME$HOST $WD$SCM $TIME $EXIT_CODE${bash_prompt_normal}\n ${bash_prompt_normal}$PROMPT_SYMBOL $PROMPT_FORMAT"
 	# set title bar
 	case "$TERM" in
 	    xterm*|rxvt*)

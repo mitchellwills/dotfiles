@@ -1,3 +1,3 @@
 SCM_SYMBOL=$'±'
-SCM_DIRTY_SYMBOL="${red}✗"
-SCM_CLEAN_SYMBOL="${green}✓"
+SCM_DIRTY_SYMBOL="${bash_prompt_red}✗"
+SCM_CLEAN_SYMBOL="${bash_prompt_green}✓"

@@ -14,9 +14,15 @@ colors = {
 
 class BashrcPromptColors(ModuleBase):
     def do_config(self):
+        def def_color(name, code):
+            color_string = '\e['+code+'m'
+            self.assign('bash_prompt_'+name, "'\["+color_string+"\]'")
+            self.assign('bash_'+name, "'color_string'")
+
         for color in colors:
-            self.assign('normal', "'\[\e[0m\]'")
-            self.assign(color, "'\[\e[0;3"+colors[color]+"m\]'")
-            self.assign('bold_'+color, "'\[\e[1;3"+colors[color]+"m\]'")
-            self.assign('underline_'+color, "'\[\e[4;3"+colors[color]+"m\]'")
-            self.assign('background_'+color, "'\[\e[4"+colors[color]+"m\]'")
+            def_color('normal', '0')
+            def_color(color, '0;3'+colors[color])
+            def_color('bold_'+color, "1;3"+colors[color])
+            def_color('underline_'+color, "4;3"+colors[color])
+            def_color('background_'+color, "4"+colors[color])
+
