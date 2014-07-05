@@ -37,6 +37,7 @@ class BashAlias():
             return 'alias '+self.name+'='+self.value
 
 def quote_and_escape(value):
+    #TODO actually escape string
     return "'"+value+"'"
     
 
