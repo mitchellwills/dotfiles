@@ -1,6 +1,7 @@
 import os
 import re
 import subprocess
+import logger
 
 def execute_with_stdout(command):
     p = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
@@ -46,28 +47,31 @@ def load_config_file(filename, config_dict):
                 collection = config_dict.get(parts[0])
                 collection_values = [parse_value(part.strip()) for part in parts[2].split(',')]
                 if collection is None:
-                    print 'no collection defined'
+                    logger.error('no collection defined')
                 elif type(collection) is set:
                     config_dict[parts[0]].update(collection_values)
                 elif type(collection) is list:
                     config_dict[parts[0]].extend(collection_values)
                 else:
-                    print 'unknown collection type: ' + str(type(collection))
+                    logger.error('unknown collection type: ' + str(type(collection)))
             elif parts[1] == ':=':
                 if parts[2] == 'set':
                     config_dict[parts[0]] = set()
                 elif parts[2] == 'list':
                     config_dict[parts[0]] = list()
                 else:
-                    print 'Unknown type: '+parts[2]
+                    logger.error('Unknown type: '+parts[2])
 
 def load_configs(filenames):
-    config_dict = dict()
-    for filename in filenames:
-        load_config_file(filename, config_dict)
+    with logger.frame('loading configuration'):
+        config_dict = dict()
+        for filename in filenames:
+            load_config_file(filename, config_dict)
 
-    config_dict['system.distributor_id'] = execute_with_stdout(['lsb_release', '-is']).strip()
-    config_dict['system.codename'] = execute_with_stdout(['lsb_release', '-cs']).strip()
+        config_dict['system.distributor_id'] = execute_with_stdout(['lsb_release', '-is']).strip()
+        config_dict['system.codename'] = execute_with_stdout(['lsb_release', '-cs']).strip()
 
-    print 'loaded config: '+str(config_dict)
-    return Config(config_dict, '')
+        with logger.frame('loaded config', logger.SUCCESS):
+            for key in config_dict:
+                logger.log(key + ' = ' + str(config_dict[key]))
+        return Config(config_dict, '')
