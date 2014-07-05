@@ -11,3 +11,7 @@ class Rossetup(ModuleBase):
         if self.config.ros.install:
             self.def_file_processor_for_file('.rossetup', HomeSymlinkFileProcessor())
 
+    def do_config(self):
+        if self.config.ros.install:
+            self.code('source ~/.rossetup\n')
+
