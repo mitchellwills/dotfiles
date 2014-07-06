@@ -106,6 +106,7 @@ def main():
     parser.add_argument('--no-update', help="don't run apt-get update", dest='update', action='store_false', default=True)
     parser.add_argument('--no-install', help="don't run apt-get install", dest='install', action='store_false', default=None)
     parser.add_argument('--install', help="run apt-get install", dest='install', action='store_true', default=None)
+    parser.add_argument('--upgrade', help="run apt-get upgrade", dest='upgrade', action='store_true', default=False)
 
     args = parser.parse_args()
     logger.log(args)
@@ -146,7 +147,7 @@ def main():
                     subprocess.call('wget https://raw.githubusercontent.com/ros/rosdistro/master/ros.key -O - | sudo apt-key add -', shell=True)
                     args.update = True # force update
                 else:
-                    logger.log('ROS repo already installed')
+                    logger.warning('ROS repo already installed')
 
                 install_command.append('ros-'+config.ros.version+'-desktop-full')
                 install_command.extend(['ros-'+config.ros.version+'-'+package.replace('_', '-') for package in config.ros.packages.install])
@@ -156,7 +157,13 @@ def main():
                 
 
             if args.update:
+                logger.log('Running apt-get update')
                 subprocess.call(['sudo', 'apt-get', '-y', 'update'])
+
+            if args.upgrade:
+                logger.log('Running apt-get upgrade')
+                subprocess.call(['sudo', 'apt-get', '-y', 'upgrade'])
+
             subprocess.call(install_command)
 
             if config.ros.install and args.update:
