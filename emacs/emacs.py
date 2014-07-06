@@ -9,5 +9,9 @@ class Emacs(ModuleBase):
         self.def_file_processor_for_regex_match('.+/.*\.emacs', AmendBuildFileProcessor('.emacs'))
 
 
+    def do_build(self):
+        self.download_build_file('move-border.el', 'https://raw.githubusercontent.com/ramnes/move-border/master/move-border.el')
+
     def do_install(self):
+        install_symlink_in_home('.emacs.d/move-border.el', self.build_file('move-border.el'))
         install_symlink_in_home('.emacs', self.build_file('.emacs'))

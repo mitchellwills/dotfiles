@@ -12,3 +12,12 @@
 (global-set-key (kbd "C-x &") 'delete-window)
 
 (global-font-lock-mode 1)
+
+(add-to-list 'load-path "~/.emacs.d/")
+(load "move-border.el")
+
+(require 'move-border)
+(global-set-key (kbd "C-x M-[ a") 'move-border-up)
+(global-set-key (kbd "C-x M-[ b") 'move-border-down)
+(global-set-key (kbd "C-x M-[ d") 'move-border-left)
+(global-set-key (kbd "C-x M-[ c") 'move-border-right)

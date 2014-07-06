@@ -4,6 +4,8 @@ import re
 from install_util import *
 import inspect
 import functools
+import urllib2
+import logger
 
 class BaseFileProcessor(object):
     def do_config(self, filepath, context):
@@ -61,6 +63,13 @@ class ModuleContext(object):
     def amend_build_file_with_file(self, name, other_file):
         with open(other_file, 'r') as f:
             self.amend_build_file(name, f.read())
+
+    def download_build_file(self, name, url):
+        with logger.trylog('downloading ' + url + ' -> ' + name):
+            response = urllib2.urlopen(url)
+            contents = response.read()
+            with open(self.build_file(name), 'w') as f:
+                f.write(contents)
 
     
 class ModuleCommon:
