@@ -15,6 +15,9 @@ class BaseFileProcessor(object):
     def do_install(self, filepath, context):
         pass
 
+def NoOpFileProcessor():
+    return BaseFileProcessor()
+
 class CustomFileProcessor(BaseFileProcessor):
     def __init__(self, config = None, build = None, install = None):
         self.config_func = config

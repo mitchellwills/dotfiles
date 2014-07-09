@@ -10,6 +10,8 @@ class Rossetup(ModuleBase):
     def do_init(self):
         if self.config.ros.install:
             self.def_file_processor_for_file('.rossetup', HomeSymlinkFileProcessor())
+        else:
+            self.def_file_processor_for_file('.rossetup', NoOpFileProcessor())
 
     def do_config(self):
         if self.config.ros.install:
