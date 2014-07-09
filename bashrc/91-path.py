@@ -20,8 +20,8 @@ class BashrcPath(ModuleBase):
         bash_ldpath = BashPath('LD_LIBRARY_PATH')
         self.def_common('bash_path', bash_path)
         self.def_common('bash_ldpath', bash_ldpath)
-        self.def_common('add_path', lambda path_entry: obj.bash_path.path_entries.append(path_entry))
-        self.def_common('add_ldpath', lambda path_entry: obj.bash_ldpath.path_entries.append(path_entry))
+        self.def_common('add_path', lambda path_entry: self.bash_path.path_entries.append(path_entry))
+        self.def_common('add_ldpath', lambda path_entry: self.bash_ldpath.path_entries.append(path_entry))
 
     def do_config(self):
         self.add_command(self.bash_path)
