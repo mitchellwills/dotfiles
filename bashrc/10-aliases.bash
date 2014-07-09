@@ -12,6 +12,9 @@ alias egrep='egrep --color=always'
 alias mkdir='mkdir -p' #recursive directory make
 alias less='less -R'
 
+alias df='df -h'
+alias du='du -h'
+
 #make emacs only run in the terminal
 alias emacs='emacs -nw'
 
