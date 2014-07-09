@@ -133,7 +133,7 @@ def main():
 
     if args.install:
         with logger.frame('Installing software'):
-            install_command = ['sudo', 'apt-get', '-y', 'install']
+            install_command = ['sudo', 'apt-get', 'install']
             install_command.extend(config.apt_get.install)
 
             if config.ros.install:
