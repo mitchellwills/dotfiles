@@ -30,37 +30,38 @@ class Config(object):
 
 def load_config_file(filename, config_dict):
     config = dict()
-    with open(filename, 'r') as f:
-        for line in f:
-            stripped_line = line.strip()
+    if os.path.isfile(filename):
+        with open(filename, 'r') as f:
+            for line in f:
+                stripped_line = line.strip()
 
-            if not stripped_line:
-                continue #skip blank line
-            elif stripped_line.startswith('#'):
-                continue #skip comment line
-            
-            parts = re.split('\s*([\+:]?=)\s*', stripped_line, 1)
-            
-            if parts[1] == '=':
-                config_dict[parts[0]] = parse_value(parts[2])
-            elif parts[1] == '+=':
-                collection = config_dict.get(parts[0])
-                collection_values = [parse_value(part.strip()) for part in parts[2].split(',')]
-                if collection is None:
-                    logger.error('no collection defined')
-                elif type(collection) is set:
-                    config_dict[parts[0]].update(collection_values)
-                elif type(collection) is list:
-                    config_dict[parts[0]].extend(collection_values)
-                else:
-                    logger.error('unknown collection type: ' + str(type(collection)))
-            elif parts[1] == ':=':
-                if parts[2] == 'set':
-                    config_dict[parts[0]] = set()
-                elif parts[2] == 'list':
-                    config_dict[parts[0]] = list()
-                else:
-                    logger.error('Unknown type: '+parts[2])
+                if not stripped_line:
+                    continue #skip blank line
+                elif stripped_line.startswith('#'):
+                    continue #skip comment line
+                
+                parts = re.split('\s*([\+:]?=)\s*', stripped_line, 1)
+                
+                if parts[1] == '=':
+                    config_dict[parts[0]] = parse_value(parts[2])
+                elif parts[1] == '+=':
+                    collection = config_dict.get(parts[0])
+                    collection_values = [parse_value(part.strip()) for part in parts[2].split(',')]
+                    if collection is None:
+                        logger.error('no collection defined')
+                    elif type(collection) is set:
+                        config_dict[parts[0]].update(collection_values)
+                    elif type(collection) is list:
+                        config_dict[parts[0]].extend(collection_values)
+                    else:
+                        logger.error('unknown collection type: ' + str(type(collection)))
+                elif parts[1] == ':=':
+                    if parts[2] == 'set':
+                        config_dict[parts[0]] = set()
+                    elif parts[2] == 'list':
+                        config_dict[parts[0]] = list()
+                    else:
+                        logger.error('Unknown type: '+parts[2])
 
 def load_configs(filenames):
     with logger.frame('loading configuration'):
