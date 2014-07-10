@@ -60,6 +60,9 @@ class ModuleContext(object):
     def build_file(self, name):
         return os.path.join(self.builddir, name)
 
+    def home_file(self, name):
+        return os.path.expanduser(os.path.join('~/', name))
+
     def amend_build_file(self, name, amendment):
         with open(self.build_file(name), 'a') as f:
             f.write(amendment)
