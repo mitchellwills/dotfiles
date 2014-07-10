@@ -27,7 +27,11 @@ function git_prompt_vars {
 	SCM_HEAD="${bash_prompt_green}$SCM_CHANGE"
   else
 	SCM_HEAD="${bash_prompt_green}$SCM_BRANCH"
-	[[ -z $SCM_GIT_UPSTREAM_REMOTE ]] && SCM_HEAD="$SCM_HEAD${bash_prompt_cyan}(untracked)"
+	if [ -z $SCM_GIT_UPSTREAM_REMOTE ]; then
+	    SCM_HEAD="$SCM_HEAD${bash_prompt_cyan}(~)"
+	else
+	    SCM_HEAD="$SCM_HEAD${bash_prompt_cyan}($SCM_GIT_UPSTREAM_REMOTE)"
+	fi
 	SCM_HEAD="$SCM_HEAD${bash_prompt_normal}:${bash_prompt_purple}$SCM_CHANGE"
   fi
 }
