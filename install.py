@@ -154,6 +154,10 @@ def main():
                 install_command.append('python-catkin-lint')
                 install_command.append('python-rosinstall')
                 install_command.append('python-wstool')
+
+            if 'personal' in config.tags:
+                install_command.append('ubuntu-restricted-extras')
+                install_command.append('gparted')
                 
 
             if args.update:
