@@ -6,6 +6,8 @@
 
 (setq column-number-mode t)
 
+(setq-default show-trailing-whitespace t)
+
 (setq auto-mode-alist (cons '("\\.launch$" . xml-mode) auto-mode-alist))
 (setq auto-mode-alist (cons '("\\.bashrc$" . shell-script-mode) auto-mode-alist))
 
