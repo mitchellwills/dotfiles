@@ -29,7 +29,7 @@ class FileModule(module_base.ModuleBase):
     def __init__(self, context, filepath):
         module_base.ModuleBase.__init__(self, context)
         self.filepath = filepath
-        
+
     def do_config(self):
         self.get_file_processor(self.filepath).do_config(self.filepath, self.context)
 
@@ -79,7 +79,7 @@ def process_folder(name, path, builddir, config):
         else:
             logger.success('Using File: '+filename)
             config_mods.append(FileModule(context, filepath))
-            
+
     for mod in config_mods:
         mod.do_init()
     for mod in config_mods:
@@ -124,7 +124,7 @@ def main():
         if os.path.exists(builddir):
             shutil.rmtree(builddir)
         os.mkdir(builddir)
-        
+
         for filename in os.listdir(rootdir):
             fullpath = os.path.join(rootdir, filename)
             if os.path.isdir(fullpath) and filename != BUILD_DIR_NAME and filename != BUILD_UTIL_DIR_NAME and not filename.startswith('.') and not filename == 'tools':
@@ -169,7 +169,7 @@ def main():
                 if subprocess.call('rosdep update 2>/dev/null', shell=True) != 0:
                     subprocess.call(['sudo', 'rosdep', 'init'])
                     subprocess.call(['rosdep', 'update'])
-                
+
 
 if __name__ == "__main__":
     main()

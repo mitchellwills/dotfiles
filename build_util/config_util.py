@@ -103,6 +103,7 @@ def evaluate_config(config_actions, config_dict):
         else:
             remaining_actions.append(action)
 
+    # recursivly apply actions until no more actions are applied
     if len(remaining_actions) > 0 and len(remaining_actions) != len(config_actions):
         evaluate_config(remaining_actions, config_dict)
 
@@ -112,10 +113,11 @@ def load_configs(filenames):
         for filename in filenames:
             load_config_file(filename, config_actions)
         config_dict = dict()
-        print evaluate_config(config_actions, config_dict)
+        evaluate_config(config_actions, config_dict)
 
         config_dict['system.distributor_id'] = execute_with_stdout(['lsb_release', '-is']).strip()
         config_dict['system.codename'] = execute_with_stdout(['lsb_release', '-cs']).strip()
+        config_dict['system.processor'] = execute_with_stdout(['uname', '-p']).strip()
 
         with logger.frame('loaded config', logger.SUCCESS):
             for key in sorted(config_dict):
