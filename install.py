@@ -151,9 +151,6 @@ def main():
 
                 install_command.append('ros-'+config.ros.version+'-desktop-full')
                 install_command.extend(['ros-'+config.ros.version+'-'+package.replace('_', '-') for package in config.ros.packages.install])
-                install_command.append('python-catkin-lint')
-                install_command.append('python-rosinstall')
-                install_command.append('python-wstool')
 
             if args.update:
                 logger.log('Running apt-get update')
