@@ -14,7 +14,7 @@ def parse_value(val):
     elif val.lower() == 'false':
         return False
     return val
-    
+
 class Config(object):
     def __init__(self, d, prefix):
         self._d = d
@@ -28,51 +28,96 @@ class Config(object):
         else:
             return None
 
-def load_config_file(filename, config_dict):
-    config = dict()
+def load_config_file(filename, config_actions):
+    tag = None
     if os.path.isfile(filename):
         with open(filename, 'r') as f:
             for line in f:
-                stripped_line = line.strip()
+                stripped_line = line.rstrip()
 
+                tag_match = re.match('\[(\w+)\]', stripped_line)
                 if not stripped_line:
                     continue #skip blank line
                 elif stripped_line.startswith('#'):
                     continue #skip comment line
-                
-                parts = re.split('\s*([\+:]?=)\s*', stripped_line, 1)
-                
-                if parts[1] == '=':
-                    config_dict[parts[0]] = parse_value(parts[2])
-                elif parts[1] == '+=':
-                    collection = config_dict.get(parts[0])
-                    collection_values = [parse_value(part.strip()) for part in parts[2].split(',')]
-                    if collection is None:
-                        logger.error('no collection defined')
-                    elif type(collection) is set:
-                        config_dict[parts[0]].update(collection_values)
-                    elif type(collection) is list:
-                        config_dict[parts[0]].extend(collection_values)
+                elif tag_match is not None:
+                    tag = tag_match.group(1)
+                else:
+                    parts = re.split('\s*([\+:]?=)\s*', stripped_line, 1)
+                    key = parts[0]
+                    operation = parts[1]
+                    value = parts[2]
+
+                    if key.startswith('\t'):
+                        key = key.lstrip()
                     else:
-                        logger.error('unknown collection type: ' + str(type(collection)))
-                elif parts[1] == ':=':
-                    if parts[2] == 'set':
-                        config_dict[parts[0]] = set()
-                    elif parts[2] == 'list':
-                        config_dict[parts[0]] = list()
-                    else:
-                        logger.error('Unknown type: '+parts[2])
+                        tag = None
+                    config_actions.append((tag, (key, operation, value)))
+
+
+
+def AssignOperation(d, key, value):
+    d[key] = parse_value(value)
+
+def AddOperation(d, key, value):
+    collection = d.get(key)
+    collection_values = [parse_value(part.strip()) for part in value.split(',')]
+    if collection is None:
+        raise Exception('no collection defined: '+key)
+    elif type(collection) is set:
+        d[key].update(collection_values)
+    elif type(collection) is list:
+        d[key].extend(collection_values)
+    else:
+        raise Exception('unknown collection type: ' + str(type(collection)) + ' in ' + key)
+
+def DefineOperation(d, key, value):
+    if value == 'set':
+        d[key] = set()
+    elif value == 'list':
+        d[key] = list()
+    else:
+        raise Exception('Unknown type: '+value + ' for ' + key)
+
+def parse_operation(s):
+    if s == '=':
+        return AssignOperation
+    elif s == '+=':
+        return AddOperation
+    elif s == ':=':
+        return DefineOperation
+    else:
+        raise Exception('Unknown operation: '+s)
+
+
+def evaluate_config(config_actions, config_dict):
+    remaining_actions = []
+    for action in config_actions:
+        tag = action[0]
+        key = action[1][0]
+        operation = parse_operation(action[1][1])
+        value = action[1][2]
+
+        if tag is None or tag in config_dict['tags']:
+            operation(config_dict, key, value)
+        else:
+            remaining_actions.append(action)
+
+    if len(remaining_actions) > 0 and len(remaining_actions) != len(config_actions):
+        evaluate_config(remaining_actions, config_dict)
 
 def load_configs(filenames):
-    with logger.frame('loading configuration'):
-        config_dict = dict()
+    with logger.trylog('loading configuration'):
+        config_actions = []
         for filename in filenames:
-            load_config_file(filename, config_dict)
+            load_config_file(filename, config_actions)
+        config_dict = dict()
+        print evaluate_config(config_actions, config_dict)
 
         config_dict['system.distributor_id'] = execute_with_stdout(['lsb_release', '-is']).strip()
         config_dict['system.codename'] = execute_with_stdout(['lsb_release', '-cs']).strip()
 
         with logger.frame('loaded config', logger.SUCCESS):
-            for key in config_dict:
+            for key in sorted(config_dict):
                 logger.log(key + ' = ' + str(config_dict[key]))
         return Config(config_dict, '')

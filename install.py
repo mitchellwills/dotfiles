@@ -155,12 +155,6 @@ def main():
                 install_command.append('python-rosinstall')
                 install_command.append('python-wstool')
 
-            if 'personal' in config.tags:
-                install_command.append('ubuntu-restricted-extras')
-                install_command.append('gparted')
-                install_command.append('vlc')
-                
-
             if args.update:
                 logger.log('Running apt-get update')
                 subprocess.call(['sudo', 'apt-get', '-y', 'update'])
