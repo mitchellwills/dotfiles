@@ -28,12 +28,15 @@ class Config(object):
         key = self.resolve(name)
         if key in self._store:
             return self._store[key].get()
-        elif len(filter(lambda key: key.startswith(key), self._store)) > 0:
+        elif len(filter(lambda x: x.startswith(key), self._store)) > 0:
             return Config(prefix = key+'.', store = self._store)
         else:
             return None
     def __getitem__(self, name):
         return self.__getattr__(name)
+    def keys(self):
+        subkeys = map(lambda key: key.replace(self._prefix, ''), filter(lambda k: k.startswith(self._prefix), self._store))
+        return set(map(lambda key: key.split('.', 1)[0], subkeys))
     def assign(self, name, value, priority=-1):
         key = self.resolve(name)
         if key not in self._store:

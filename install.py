@@ -118,6 +118,8 @@ def main():
 
     config = load_configs([os.path.join(rootdir, 'base.conf'), os.path.expanduser('~/.dotfiles.conf')])
 
+    print config.keys()
+
     with logger.frame('Building system'):
         builddir = os.path.join(rootdir, BUILD_DIR_NAME)
 
