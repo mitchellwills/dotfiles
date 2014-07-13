@@ -4,6 +4,7 @@ from collections import OrderedDict
 from install_util import *
 from module_base import *
 import subprocess
+import logger
 
 
 class AptGetUpdate(ModuleBase):
@@ -13,6 +14,8 @@ class AptGetUpdate(ModuleBase):
         if self.config.install and self.config.update:
             with logger.trylog('Running apt-get update'):
                 subprocess.call(['sudo', 'apt-get', '-y', 'update'])
+        else:
+            logger.warning('not running apt-get update')
 
 class AptGetUpgrade(ModuleBase):
     @before('AptGetInstall')
@@ -20,6 +23,8 @@ class AptGetUpgrade(ModuleBase):
         if self.config.install and self.config.upgrade:
             with logger.trylog('Running apt-get upgrade'):
                 subprocess.call(['sudo', 'apt-get', '-y', 'upgrade'])
+        else:
+            logger.warning('not running apt-get upgrade')
 
 
 class AptGetInstall(ModuleBase):
@@ -29,3 +34,5 @@ class AptGetInstall(ModuleBase):
                 install_command = ['sudo', 'apt-get', 'install']
                 install_command.extend(self.config.apt_get.install)
                 subprocess.call(install_command)
+        else:
+            logger.warning('not running apt-get install')

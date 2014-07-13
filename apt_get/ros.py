@@ -20,6 +20,8 @@ class RosRepo(ModuleBase):
                 self.config.assign('update', True)
             else:
                 logger.warning('ROS repo already installed')
+        else:
+            logger.warning('Not checkout ROS apt-get repo status')
 
 
     @before('AptGetUpdate')
@@ -31,6 +33,8 @@ class RosRepo(ModuleBase):
                 with logger.trylog('Installing ROS repo source and key'):
                     subprocess.call('sudo sh -c \'echo "'+self.ros_package_repo+'" > '+self.ros_repo_file+'\'', shell=True)
                     subprocess.call('wget https://raw.githubusercontent.com/ros/rosdistro/master/ros.key -O - | sudo apt-key add -', shell=True)
+        else:
+            logger.warning('Not installing ROS apt-get repo')
 
 class RosDep(ModuleBase):
     @after('AptGetInstall')
@@ -39,3 +43,5 @@ class RosDep(ModuleBase):
             if subprocess.call('rosdep update 2>/dev/null', shell=True) != 0:
                 subprocess.call(['sudo', 'rosdep', 'init'])
                 subprocess.call(['rosdep', 'update'])
+        else:
+            logger.warning('Not checking rosdep')
