@@ -12,17 +12,12 @@ class GitConfigEntry:
 
 class GitConfig(ModuleBase):
     def do_init(self):
-        data = OrderedDict()
-
+        self.config.ensure('git.config')
         def add_config(name, value, comment = None):
-            name_split = name.split('.')
-            category = name_split[0]
-            key = name_split[1]
-            if not category in data:
-                data[category] = OrderedDict()
-            data[category][key] = GitConfigEntry(value, comment)
-        
-        self.def_common('data', data)
+            self.config.git.config[name] = value
+            if comment is not None:
+                self.config.git.config[name+'.comment'] = comment
+
         self.def_common('add_config', add_config)
 
     def do_config(self):
@@ -38,12 +33,14 @@ class GitConfig(ModuleBase):
 
     def do_build(self):
         with open(self.build_file('.gitconfig'), 'w') as f:
-            for category in self.data:
+            for category in self.config.git.config.keys():
                 f.write('['+category+']\n')
-                for key, entry in self.data[category].iteritems():
-                    if entry.comment:
-                        f.write('\t# '+entry.comment+'\n')
-                    f.write('\t'+key+' = '+entry.value+'\n')
+                for key in self.config.git.config[category].keys():
+                    value = self.config.git.config[category][key]
+                    comment = self.config.git.config[category][key+'.comment']
+                    if comment is not None:
+                        f.write('\t# '+comment+'\n')
+                    f.write('\t'+key+' = '+value+'\n')
                 f.write('\n')
 
     def do_install(self):

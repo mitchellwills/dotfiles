@@ -1,8 +1,8 @@
 from __future__ import absolute_import
 from module_base import *
 
-
 class GitConfigAlias(ModuleBase):
+    @after('GitConfig')
     def do_init(self):
         self.def_common('add_alias', lambda name, value, comment = None: self.add_config('alias.'+name, value, comment))
 

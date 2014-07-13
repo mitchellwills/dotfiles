@@ -32,11 +32,17 @@ class Config(object):
             return Config(prefix = key+'.', store = self._store)
         else:
             return None
+    def __setitem__(self, name, value):
+        self.assign(name, value, None)
     def __getitem__(self, name):
         return self.__getattr__(name)
     def keys(self):
         subkeys = map(lambda key: key.replace(self._prefix, ''), filter(lambda k: k.startswith(self._prefix), self._store))
-        return set(map(lambda key: key.split('.', 1)[0], subkeys))
+        subkeys = set(map(lambda key: key.split('.', 1)[0], subkeys))
+        subkeys.discard('')
+        return subkeys
+    def ensure(self, name):
+        self.assign(name+'.', 'ENSURE')
     def assign(self, name, value, priority=-1):
         key = self.resolve(name)
         if key not in self._store:
@@ -100,6 +106,11 @@ class ConfigValue(object):
         if default_value is not None:
             self.values.append((value, -1))
     def assign(self, value, priority):
+        if priority is None:
+            if len(self.values) > 0:
+                priority = self.values[0][1] + 1
+            else:
+                priority = 0
         self.values.append((parse_value(value), priority))
         self.values.sort(key=lambda x:x[1], reverse=True)
     def get(self):

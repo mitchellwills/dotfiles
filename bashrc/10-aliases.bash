@@ -57,6 +57,3 @@ function git_pub() {
   echo "Publishing ${BRANCH} to remote origin"
   git push -u origin $BRANCH
 }
-
-
-

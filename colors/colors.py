@@ -5,5 +5,5 @@ from install_util import *
 from module_base import *
 
 class Colors(ModuleBase):
-    def do_init(self):
-        self.def_file_processor_for_file('LS_COLORS', HomeSymlinkFileProcessor('.dircolors'))
+    def do_install(self):
+        install_symlink_in_home('.dircolors', self.module_file('LS_COLORS'))

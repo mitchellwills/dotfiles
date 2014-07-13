@@ -13,16 +13,18 @@ colors = {
 }
 
 class BashrcPromptColors(ModuleBase):
-    def do_config(self):
-        def def_color(name, code):
-            color_string = '\e['+code+'m'
-            self.assign('bash_prompt_'+name, "'\["+color_string+"\]'")
-            self.assign('bash_'+name, "'color_string'")
+    @before('Bashrc')
+    def do_build(self):
+        with open(self.build_file('gen/51-bash-colors.bash'), 'w') as f:
+            def def_color(name, code):
+                color_string = '\e['+code+'m'
+                f.write("bash_prompt_"+name+"='\["+color_string+"\]'\n")
+                f.write("bash_"+name+"='"+color_string+"'\n")
 
-        for color in colors:
-            def_color('normal', '0')
-            def_color(color, '0;3'+colors[color])
-            def_color('bold_'+color, "1;3"+colors[color])
-            def_color('underline_'+color, "4;3"+colors[color])
-            def_color('background_'+color, "4"+colors[color])
+            for color in colors:
+                def_color('normal', '0')
+                def_color(color, '0;3'+colors[color])
+                def_color('bold_'+color, "1;3"+colors[color])
+                def_color('underline_'+color, "4;3"+colors[color])
+                def_color('background_'+color, "4"+colors[color])
 

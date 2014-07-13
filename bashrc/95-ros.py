@@ -7,13 +7,11 @@ from module_base import *
 
 
 class Rossetup(ModuleBase):
-    def do_init(self):
+    @before('Bashrc')
+    def do_build(self):
         if self.config.ros.install:
-            self.def_file_processor_for_file('.rossetup', HomeSymlinkFileProcessor())
-        else:
-            self.def_file_processor_for_file('.rossetup', NoOpFileProcessor())
+            open(self.build_file('gen/95-ros.bash'), 'w').write('source ~/.rossetup\n')
 
-    def do_config(self):
-        if self.config.ros.install:
-            self.code('source ~/.rossetup\n')
+    def do_install(self):
+        install_symlink_in_home('.rossetup', self.module_file('.rossetup'))
 

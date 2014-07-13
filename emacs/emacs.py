@@ -4,14 +4,12 @@ from build_util import *
 from install_util import *
 from module_base import *
 import logger
+import glob
 
 class Emacs(ModuleBase):
-    def do_init(self):
-        self.def_file_processor_for_regex_match('.+/.*\.emacs', AmendBuildFileProcessor('.emacs'))
-
-
     def do_build(self):
         self.download_build_file('move-border.el', 'https://raw.githubusercontent.com/ramnes/move-border/master/move-border.el')
+        self.concatenate_files_to_build(glob.glob(self.module_file('*.emacs')), '.emacs')
 
     def do_install(self):
         if not os.path.isdir(self.home_file('.emacs.d')):

@@ -14,6 +14,7 @@ buildutildir = os.path.join(rootdir, BUILD_UTIL_DIR_NAME)
 sys.path.append(buildutildir)
 
 from config_util import load_configs
+from build_util import *
 import module_base
 import logger
 
@@ -24,30 +25,52 @@ GIT_DIR_NAME = '.git'
 def load_py(name, path):
     return imp.load_source(name, path)
 
+def process_modules(config_mods, func_name):
+    # import function
+    dependancies = dict()
+    for mod in config_mods:
+        mod_name = mod.__class__.__name__
+        if hasattr(mod, func_name):
+            func = getattr(mod, func_name)
+            dependancies[mod_name] = func
+            if not hasattr(func, 'after'):
+                func.__func__.after = set()
 
-class FileModule(module_base.ModuleBase):
-    def __init__(self, context, filepath):
-        module_base.ModuleBase.__init__(self, context)
-        self.filepath = filepath
+    # move items from before to the coresponding after
+    for mod_name in dependancies:
+        func = dependancies[mod_name]
+        if hasattr(func, 'before'):
+            for build_dep in func.before:
+                if build_dep not in dependancies:
+                    raise Exception('No module found: ' + build_dep + ', was dep for ' + mod_name)
+                else:
+                    dependancies[build_dep].after.add(mod_name)
 
-    def do_config(self):
-        self.get_file_processor(self.filepath).do_config(self.filepath, self.context)
+    # evaluate steps respecting dependancies
+    evaluated = set()
+    while True:
+        evaluated_on_pass = set()
+        for mod_name in dependancies:
+            func = dependancies[mod_name]
+            if evaluated.issuperset(func.after):
+                with logger.frame(mod_name+'.'+func_name+': '+str(list(func.after))):
+                    func()
+                    evaluated_on_pass.add(mod_name)
 
-    def do_build(self):
-        self.get_file_processor(self.filepath).do_build(self.filepath, self.context)
+        evaluated.update(evaluated_on_pass)
+        for mod_name in evaluated_on_pass:
+            dependancies.pop(mod_name)
 
-    def do_install(self):
-        self.get_file_processor(self.filepath).do_install(self.filepath, self.context)
+        if len(dependancies) == 0:
+            break
+        if len(evaluated_on_pass) == 0:
+            raise Exception('unresolvable dependancies for: ', dependancies.keys())
 
-
-def process_folder(name, path, builddir, config):
+def process_folder(name, path, builddir, config, config_mods):
     folder_builddir = builddir
     common = module_base.ModuleCommon()
 
-    config_mods = []
-    files = [os.path.join(root, filename)
-             for root, dirnames, filenames in os.walk(path)
-             for filename in filenames]
+    files = all_files_recursive(path)
 
     for filename in sorted(files):
         filepath = os.path.join(path, filename)
@@ -69,25 +92,14 @@ def process_folder(name, path, builddir, config):
                     thing = py_mod.__dict__[name]
                     #TODO figure out how to do class type instead of this
                     if isinstance(thing, type(module_base.ModuleBase)) and issubclass(thing, module_base.ModuleBase):
-                        logger.success('Using module: '+filename+':'+name)
+                        logger.success('Loading module: '+filename+':'+name)
                         mod_found = True
                         config_mods.append(thing(context))
                 if not mod_found:
                     logger.failed('No modules found in: '+filename)
             except IOError as e:
                 logger.failed( 'Error loading module: '+str(e))
-        else:
-            logger.success('Using File: '+filename)
-            config_mods.append(FileModule(context, filepath))
 
-    for mod in config_mods:
-        mod.do_init()
-    for mod in config_mods:
-        mod.do_config()
-    for mod in config_mods:
-        mod.do_build()
-    for mod in config_mods:
-        mod.do_install()
 
 
 def prompt_yes_no(question):
@@ -127,11 +139,18 @@ def main():
             shutil.rmtree(builddir)
         os.mkdir(builddir)
 
+        config_mods = []
         for filename in os.listdir(rootdir):
             fullpath = os.path.join(rootdir, filename)
             if os.path.isdir(fullpath) and filename != BUILD_DIR_NAME and filename != BUILD_UTIL_DIR_NAME and not filename.startswith('.') and not filename == 'tools':
-                with logger.frame('Building '+filename):
-                    process_folder(filename, fullpath, builddir, config)
+                with logger.frame('Loading '+filename):
+                    process_folder(filename, fullpath, builddir, config, config_mods)
+
+        steps = ['do_init', 'do_config', 'do_build', 'do_install']
+        for step in steps:
+            with logger.frame(step):
+                process_modules(config_mods, step)
+
 
     if args.install:
         with logger.frame('Installing software'):

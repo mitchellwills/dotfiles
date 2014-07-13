@@ -8,8 +8,8 @@ import logger
 class UiSettings(ModuleBase):
     def do_install(self):
         if self.config.uisettings.canonical_scroll:
-            logger.log('Setting normal scroll mode')
-            os.system('gsettings set com.canonical.desktop.interface scrollbar-mode normal')
+            with logger.trylog('Setting normal scroll mode'):
+                os.system('gsettings set com.canonical.desktop.interface scrollbar-mode normal')
         if self.config.uisettings.nonrecursive_search:
-            logger.log('Disabling recursive search')
-            os.system('gsettings set org.gnome.nautilus.preferences enable-interactive-search true')
+            with logger.trylog('Disabling recursive search'):
+                os.system('gsettings set org.gnome.nautilus.preferences enable-interactive-search true')
