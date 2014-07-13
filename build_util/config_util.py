@@ -9,6 +9,9 @@ def execute_with_stdout(command):
     return out
 
 def parse_value(val):
+    if type(val) is not str:
+        return val
+
     if val.lower() == 'true':
         return True
     elif val.lower() == 'false':
@@ -16,7 +19,12 @@ def parse_value(val):
     return val
 
 def parse_values(value):
-    return [parse_value(part.strip()) for part in value.split(',')]
+    if type(value) == str:
+        return [parse_value(part.strip()) for part in value.split(',')]
+    elif type(value) == list:
+        return value
+    else:
+        raise Exception('Unexpected input ' + value)
 
 class Config(object):
     def __init__(self, prefix = '', store = dict()):
@@ -125,7 +133,7 @@ class ConfigSet(object):
         for value in values:
             self.s.discard(value)
     def get(self):
-        return self.s
+        return frozenset(self.s)
 class ConfigList(object):
     def __init__(self):
         self.l = list()
@@ -138,7 +146,7 @@ class ConfigList(object):
             except ValueError:
                 pass
     def get(self):
-        return self.l
+        return tuple(self.l)
 
 class ConfigCollection(object):
     def __init__(self, key, t):
@@ -150,13 +158,13 @@ class ConfigCollection(object):
         else:
             raise Exception('unknown collection type: ' + t + ' in ' + key)
         self.actions = []
-
     def add(self, value, priority):
         self.actions.append((lambda c: c.add_all(parse_values(value)), priority))
+        self.actions.sort(key=lambda x:x[1])
     def remove(self, value, priority):
         self.actions.append((lambda c: c.remove_all(parse_values(value)), priority))
-    def get(self):
         self.actions.sort(key=lambda x:x[1])
+    def get(self):
         collection = self.constructor()
         for (action, priority) in self.actions:
             action(collection)

@@ -129,8 +129,9 @@ def main():
     logger.log('Root Dir: ' + rootdir)
 
     config = load_configs([os.path.join(rootdir, 'base.conf'), os.path.expanduser('~/.dotfiles.conf')])
-
-    print config.keys()
+    config.assign('install', args.install, float("inf"))
+    config.assign('update', args.update, float("inf"))
+    config.assign('upgrade', args.upgrade, float("inf"))
 
     with logger.frame('Building system'):
         builddir = os.path.join(rootdir, BUILD_DIR_NAME)
@@ -150,43 +151,6 @@ def main():
         for step in steps:
             with logger.frame(step):
                 process_modules(config_mods, step)
-
-
-    if args.install:
-        with logger.frame('Installing software'):
-            install_command = ['sudo', 'apt-get', 'install']
-            install_command.extend(config.apt_get.install)
-
-            if config.ros.install:
-                logger.log('Installing ROS '+config.ros.version)
-                # setup ros package repo
-                ros_package_repo = 'deb http://packages.ros.org/ros/ubuntu '+config.system.codename+' main'
-                ros_repo_file = '/etc/apt/sources.list.d/ros-latest.list'
-                if not (os.path.isfile(ros_repo_file) and ros_package_repo in open(ros_repo_file, 'r').read()):
-                    logger.log('Installing ROS repo source and key')
-                    subprocess.call('sudo sh -c \'echo "'+ros_package_repo+'" > '+ros_repo_file+'\'', shell=True)
-                    subprocess.call('wget https://raw.githubusercontent.com/ros/rosdistro/master/ros.key -O - | sudo apt-key add -', shell=True)
-                    args.update = True # force update
-                else:
-                    logger.warning('ROS repo already installed')
-
-                install_command.append('ros-'+config.ros.version+'-desktop-full')
-                install_command.extend(['ros-'+config.ros.version+'-'+package.replace('_', '-') for package in config.ros.packages.install])
-
-            if args.update:
-                logger.log('Running apt-get update')
-                subprocess.call(['sudo', 'apt-get', '-y', 'update'])
-
-            if args.upgrade:
-                logger.log('Running apt-get upgrade')
-                subprocess.call(['sudo', 'apt-get', '-y', 'upgrade'])
-
-            subprocess.call(install_command)
-
-            if config.ros.install and args.update:
-                if subprocess.call('rosdep update 2>/dev/null', shell=True) != 0:
-                    subprocess.call(['sudo', 'rosdep', 'init'])
-                    subprocess.call(['rosdep', 'update'])
 
 
 if __name__ == "__main__":
