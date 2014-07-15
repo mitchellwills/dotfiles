@@ -29,8 +29,10 @@ function git_prompt_vars {
 	SCM_HEAD="${bash_prompt_green}$SCM_BRANCH"
 	if [ -z $SCM_GIT_UPSTREAM_REMOTE ]; then
 	    SCM_HEAD="$SCM_HEAD${bash_prompt_cyan}(~)"
-	else
+	elif [ "$SCM_GIT_UPSTREAM_BRANCH" == "$SCM_BRANCH" ]; then
 	    SCM_HEAD="$SCM_HEAD${bash_prompt_cyan}($SCM_GIT_UPSTREAM_REMOTE)"
+	else
+	    SCM_HEAD="$SCM_HEAD${bash_prompt_cyan}($SCM_GIT_UPSTREAM_REMOTE/$SCM_GIT_UPSTREAM_BRANCH)"
 	fi
 	SCM_HEAD="$SCM_HEAD${bash_prompt_normal}:${bash_prompt_purple}$SCM_CHANGE"
   fi
