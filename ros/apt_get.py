@@ -21,7 +21,7 @@ class RosRepo(ModuleBase):
             else:
                 logger.warning('ROS repo already installed')
         else:
-            logger.warning('Not checkout ROS apt-get repo status')
+            logger.warning('Not checking ROS apt-get repo status')
 
 
     @before('AptGetUpdate')

@@ -79,10 +79,20 @@ class Config(object):
         else:
             raise Exception(key + ' already defined')
 
-def load_config_file(filename, config_actions):
+    def dump_store(self):
+        with logger.frame('Config:', logger.SUCCESS):
+            for key in sorted(self._store):
+                logger.log(key + ' = ' + str(self._store[key].get()))
+
+
+def parse_config_file(filename):
+    config_actions = []
     tag = None
+    prefix = ''
+    previous_line_comment = None
     if os.path.isfile(filename):
         with open(filename, 'r') as f:
+            first_line = True
             for line in f:
                 stripped_line = line.rstrip()
 
@@ -91,8 +101,17 @@ def load_config_file(filename, config_actions):
                     continue #skip blank line
                 elif stripped_line.startswith('#'):
                     continue #skip comment line
+                elif first_line and stripped_line.startswith(':'):
+                    prefix = stripped_line.lstrip(':')+'.'
+                    previous_line_comment = None
+                    if previous_line_comment is not None:
+                        raise Exception('key comment before prefix line')
                 elif tag_match is not None:
                     tag = tag_match.group(1)
+                    if previous_line_comment is not None:
+                        raise Exception('key comment before tag line')
+                elif stripped_line.startswith('%'):
+                    previous_line_comment = stripped_line[1:].strip()
                 else:
                     parts = re.split('\s*([\+:-]?=)\s*', stripped_line, 1)
                     key = parts[0]
@@ -103,7 +122,12 @@ def load_config_file(filename, config_actions):
                         key = key.lstrip()
                     else:
                         tag = None
-                    config_actions.append((tag, (key, operation, value)))
+                    config_actions.append((tag, (prefix + key, operation, value)))
+                    if previous_line_comment is not None:
+                        config_actions.append((tag, (prefix + key + '.comment', '=', previous_line_comment)))
+                    previous_line_comment = None
+                first_line = False
+    return config_actions
 
 
 # A class that evaluates to the last assigned value
@@ -170,6 +194,23 @@ class ConfigCollection(object):
             action(collection)
         return collection.get()
 
+class ConfigLoader(object):
+    def __init__(self):
+        self.config_actions = []
+
+    def build(self):
+        numbered_config_actions = list(enumerate(self.config_actions))
+        config = Config()
+        config.assign('system.distributor_id', execute_with_stdout(['lsb_release', '-is']).strip())
+        config.assign('system.codename', execute_with_stdout(['lsb_release', '-cs']).strip())
+        config.assign('system.processor', execute_with_stdout(['uname', '-p']).strip())
+        evaluate_config(numbered_config_actions, config)
+        return config
+
+    def load_file(self, filename):
+        self.config_actions.extend(parse_config_file(filename))
+
+
 def evaluate_tag(config, tag):
     parts = re.split('\s*&&\s*', tag)
     result = True
@@ -211,21 +252,3 @@ def evaluate_config(config_actions, config):
     if len(remaining_actions) > 0 and len(remaining_actions) != len(config_actions):
         evaluate_config(remaining_actions, config)
 
-def load_configs(filenames):
-    with logger.trylog('loading configuration'):
-        config_actions = []
-        for filename in filenames:
-            load_config_file(filename, config_actions)
-        config = Config()
-
-        config.assign('system.distributor_id', execute_with_stdout(['lsb_release', '-is']).strip())
-        config.assign('system.codename', execute_with_stdout(['lsb_release', '-cs']).strip())
-        config.assign('system.processor', execute_with_stdout(['uname', '-p']).strip())
-
-        numbered_config_actions = list(enumerate(config_actions))
-        evaluate_config(numbered_config_actions, config)
-
-        with logger.frame('loaded config', logger.SUCCESS):
-            for key in sorted(config._store):
-                logger.log(key + ' = ' + str(config._store[key].get()))
-        return config

@@ -13,7 +13,7 @@ rootdir = os.path.dirname(os.path.realpath(__file__))
 buildutildir = os.path.join(rootdir, BUILD_UTIL_DIR_NAME)
 sys.path.append(buildutildir)
 
-from config_util import load_configs
+from config_util import ConfigLoader
 from build_util import *
 import module_base
 import logger
@@ -128,18 +128,27 @@ def main():
 
     logger.log('Root Dir: ' + rootdir)
 
-    config = load_configs([os.path.join(rootdir, 'base.conf'), os.path.expanduser('~/.dotfiles.conf')])
+    config_loader = ConfigLoader()
+    config_loader.load_file(os.path.join(rootdir, 'base.conf'))
+    config_loader.load_file(os.path.join(rootdir, 'bashrc/aliases.conf'))
+    config_loader.load_file(os.path.expanduser('~/.dotfiles.conf'))
+
+
+    config = config_loader.build()
     config.assign('install', args.install, float("inf"))
     config.assign('update', args.update, float("inf"))
     config.assign('upgrade', args.upgrade, float("inf"))
 
-    with logger.frame('Building system'):
-        builddir = os.path.join(rootdir, BUILD_DIR_NAME)
+    config.dump_store()
 
-        if os.path.exists(builddir):
-            shutil.rmtree(builddir)
-        os.mkdir(builddir)
 
+    builddir = os.path.join(rootdir, BUILD_DIR_NAME)
+
+    if os.path.exists(builddir):
+        shutil.rmtree(builddir)
+    os.mkdir(builddir)
+
+    with logger.frame('Loading Modules'):
         config_mods = []
         for filename in os.listdir(rootdir):
             fullpath = os.path.join(rootdir, filename)
@@ -147,10 +156,10 @@ def main():
                 with logger.frame('Loading '+filename):
                     process_folder(filename, fullpath, builddir, config, config_mods)
 
-        steps = ['do_init', 'do_config', 'do_build', 'do_install']
-        for step in steps:
-            with logger.frame(step):
-                process_modules(config_mods, step)
+    steps = ['do_init', 'do_config', 'do_build', 'do_install']
+    for step in steps:
+        with logger.frame(step):
+            process_modules(config_mods, step)
 
 
 if __name__ == "__main__":
