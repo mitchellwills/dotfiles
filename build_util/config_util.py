@@ -85,48 +85,85 @@ class Config(object):
                 logger.log(key + ' = ' + str(self._store[key].get()))
 
 
+class ConfTag(object):
+    def __init__(self, tag):
+        self.tag = tag
+class ConfPrefix(object):
+    def __init__(self, prefix):
+        self.prefix = prefix
+class ConfStack(object):
+    def __init__(self):
+        self.stack = []
+    def push(self, item, depth):
+        self.stack.append(item)
+    def pop_to_depth(self, depth):
+        while self.size() > depth:
+            self.stack.pop()
+    def size(self):
+        return len(self.stack)
+
+    def tag(self):
+        tags = map(lambda tag: tag.tag, filter(lambda x: type(x) is ConfTag, self.stack))
+        if len(tags) > 0:
+            return ' && '.join(tags)
+        return None
+    def prefix(self, key):
+        prefixes = map(lambda prefix: prefix.prefix, filter(lambda x: type(x) is ConfPrefix, self.stack))
+        if len(prefixes) > 0:
+            return '.'.join(prefixes)+'.'+key
+        return key
+
 def parse_config_file(filename):
     config_actions = []
-    tag = None
-    prefix = ''
+    stack = ConfStack()
     previous_line_comment = None
     if os.path.isfile(filename):
         with open(filename, 'r') as f:
-            first_line = True
             for line in f:
-                stripped_line = line.rstrip()
+                if re.search('^ +', line) is not None:
+                    raise Exception('line starts with non tab: "'+line+'"')
+                m = re.search('^(\t*)(\s*)(.+)', line)
+                if m is not None:
+                    depth = len(m.group(1))
+                    if len(m.group(2)) > 0:
+                        raise Exception('Found spaces at the beginning of a line: "'+line+'"')
 
-                tag_match = re.match('\[([^\]]+)\]', stripped_line)
-                if not stripped_line:
-                    continue #skip blank line
-                elif stripped_line.startswith('#'):
-                    continue #skip comment line
-                elif first_line and stripped_line.startswith(':'):
-                    prefix = stripped_line.lstrip(':')+'.'
-                    previous_line_comment = None
-                    if previous_line_comment is not None:
-                        raise Exception('key comment before prefix line')
-                elif tag_match is not None:
-                    tag = tag_match.group(1)
-                    if previous_line_comment is not None:
-                        raise Exception('key comment before tag line')
-                elif stripped_line.startswith('%'):
-                    previous_line_comment = stripped_line[1:].strip()
-                else:
-                    parts = re.split('\s*([\+:-]?=)\s*', stripped_line, 1)
-                    key = parts[0]
-                    operation = parts[1]
-                    value = parts[2]
+                    line_contents = m.group(3).rstrip()
+                    if line_contents.startswith('#'):
+                        continue # skip comment
 
-                    if key.startswith('\t'):
-                        key = key.lstrip()
+                    if depth <= stack.size():
+                        stack.pop_to_depth(depth)
+                        tag_match = re.match('\[([^\]]+)\]', line_contents)
+                        parts = re.split('\s*([\+:-]?=)\s*', line_contents, 1)
+                        if tag_match is not None:
+                            if previous_line_comment is not None:
+                                raise Exception('Cannot have conf comment on tag')
+                            tag = tag_match.group(1)
+                            stack.push(ConfTag(tag), depth)
+                        elif line_contents.startswith(':'):
+                            stack.push(ConfPrefix(line_contents[1:]), depth)
+                            if previous_line_comment is not None:
+                                config_actions.append((stack.tag(), (stack.prefix('comment'), '=', previous_line_comment)))
+                                previous_line_comment = None
+                        elif len(parts) == 3:
+                            key = parts[0]
+                            operation = parts[1]
+                            value = parts[2]
+                            config_actions.append((stack.tag(), (stack.prefix(key), operation, value)))
+                            if previous_line_comment is not None:
+                                config_actions.append((stack.tag(), (stack.prefix(key+'.comment'), '=', previous_line_comment)))
+                                previous_line_comment = None
+                        elif line_contents.startswith('%'):
+                            if previous_line_comment is not None:
+                                raise Exception('Can only have one line conf comment')
+                            previous_line_comment = line_contents[1:].lstrip()
+                        else:
+                            raise Exception('Unknown command: "'+line_contents+'"')
                     else:
-                        tag = None
-                    config_actions.append((tag, (prefix + key, operation, value)))
-                    if previous_line_comment is not None:
-                        config_actions.append((tag, (prefix + key + '.comment', '=', previous_line_comment)))
-                    previous_line_comment = None
-                first_line = False
+                        raise Exception('Expected indent of '+str(stack.size())+' or less on line: "'+line+'"')
+                else:
+                    pass # skip blank line
     return config_actions
 
 
