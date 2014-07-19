@@ -43,7 +43,7 @@ class BashrcPrompt(ModuleBase):
             for var in self.config.bash.prompt.vars.keys():
                 value = self.config.bash.prompt.vars[var]
                 if type(value) is Config:
-                    f.write('\tif [ '+value['if']+' ]; then\n')
+                    f.write('\tif [[ '+value['if']+' ]]; then\n')
                     f.write('\t\t'+var+'='+expand(value['then'])+'\n')
                     f.write('\telse\n')
                     f.write('\t\t'+var+'='+expand(value['else'])+'\n')
