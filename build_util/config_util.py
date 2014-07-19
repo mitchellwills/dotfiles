@@ -28,8 +28,8 @@ def parse_values(value):
 
 class Config(object):
     def __init__(self, prefix = '', store = dict()):
-        self._prefix = prefix
-        self._store = store
+        object.__setattr__(self, '_prefix', prefix)
+        object.__setattr__(self, '_store', store)
     def resolve(self, name):
         return self._prefix+name
     def __getattr__(self, name):
@@ -40,6 +40,8 @@ class Config(object):
             return Config(prefix = key+'.', store = self._store)
         else:
             return None
+    def __setattr__(self, name, value):
+        raise Exception('Cannot set attribute directly, you must use a modifier function instead')
     def __setitem__(self, name, value):
         self.assign(name, value, None)
     def __getitem__(self, name):
@@ -51,6 +53,7 @@ class Config(object):
         return subkeys
     def ensure(self, name):
         self.assign(name+'.', 'ENSURE')
+        return self[name]
     def assign(self, name, value, priority=-1):
         key = self.resolve(name)
         if key not in self._store:
