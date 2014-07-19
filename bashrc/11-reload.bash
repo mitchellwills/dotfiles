@@ -1,4 +1,4 @@
-function reload-dotfiles(){
+function dotfiles(){
 (
   cd ~/.dotfiles
   git pull
