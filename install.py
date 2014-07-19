@@ -72,7 +72,7 @@ def process_folder(name, path, builddir, config, config_mods):
 
     files = all_files_recursive(path)
 
-    for filename in sorted(files):
+    for filename in files:
         filepath = os.path.join(path, filename)
         if filename.endswith('~'):
             continue
@@ -128,25 +128,27 @@ def main():
 
     logger.log('Root Dir: ' + rootdir)
 
-    config_loader = ConfigLoader()
-    config_loader.load_file(os.path.join(rootdir, 'base.conf'))
-    config_loader.load_file(os.path.join(rootdir, 'bashrc/aliases.conf'))
-    config_loader.load_file(os.path.expanduser('~/.dotfiles.conf'))
-
-
-    config = config_loader.build()
-    config.assign('install', args.install, float("inf"))
-    config.assign('update', args.update, float("inf"))
-    config.assign('upgrade', args.upgrade, float("inf"))
-
-    config.dump_store()
-
-
     builddir = os.path.join(rootdir, BUILD_DIR_NAME)
 
     if os.path.exists(builddir):
         shutil.rmtree(builddir)
     os.mkdir(builddir)
+
+    with logger.frame('Loading Configuration'):
+        config_loader = ConfigLoader()
+        conf_files = filter(lambda f: f.endswith('.conf'), all_files_recursive(rootdir))
+        for f in conf_files:
+            with logger.trylog('loading conf: '+f):
+                config_loader.load_file(f)
+        with logger.trylog('loading user conf file'):
+            config_loader.load_file(os.path.expanduser('~/.dotfiles.conf'))
+
+
+        config = config_loader.build()
+        config.assign('install', args.install, float("inf"))
+        config.assign('update', args.update, float("inf"))
+        config.assign('upgrade', args.upgrade, float("inf"))
+
 
     with logger.frame('Loading Modules'):
         config_mods = []
