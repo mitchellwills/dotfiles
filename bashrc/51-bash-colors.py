@@ -21,8 +21,8 @@ class BashrcPromptColors(ModuleBase):
                 f.write("bash_prompt_"+name+"='\["+color_string+"\]'\n")
                 f.write("bash_"+name+"='"+color_string+"'\n")
 
+            def_color('normal', '0')
             for color in colors:
-                def_color('normal', '0')
                 def_color(color, '0;3'+colors[color])
                 def_color('bold_'+color, "1;3"+colors[color])
                 def_color('underline_'+color, "4;3"+colors[color])
