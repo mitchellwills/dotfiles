@@ -7,6 +7,16 @@ import subprocess
 import logger
 
 
+class AptGetRepository(ModuleBase):
+    @before('AptGetUpdate')
+    def do_install(self):
+        if self.config.install:
+            for repo in self.config.apt_get.repos:
+                with logger.trylog('Running add-apt-repository '+repo):
+                    subprocess.call(['sudo', 'add-apt-repository', '-y', repo])
+        else:
+            logger.warning('not running add-apt-repository')
+
 class AptGetUpdate(ModuleBase):
     @before('AptGetInstall')
     @before('AptGetUpgrade')
@@ -31,7 +41,7 @@ class AptGetInstall(ModuleBase):
     def do_install(self):
         if self.config.install:
             with logger.frame('apt-get installing ' + str(self.config.apt_get.install)):
-                install_command = ['sudo', 'apt-get', 'install']
+                install_command = ['sudo', 'apt-get', 'install', '-q']
                 install_command.extend(self.config.apt_get.install)
                 subprocess.call(install_command)
         else:
