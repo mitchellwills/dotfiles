@@ -6,6 +6,8 @@ import inspect
 import functools
 import urllib2
 import logger
+import operator
+import StringIO
 
 class ModuleContext(object):
     def __init__(self, wd, builddir, config, common):
@@ -42,6 +44,22 @@ class ModuleContext(object):
             with open(self.build_file(name), 'w') as f:
                 f.write(contents)
 
+    def eval_template_content(self, match):
+        template_content = match.group(1)
+        if '\n' in template_content:
+            content = StringIO.StringIO()
+            scope = {"__builtins__": __builtins__, "config": self.config, "out": content}
+            exec(template_content, scope)
+            return content.getvalue()
+        else:
+            return eval(template_content, {"__builtins__": __builtins__, "config": self.config})
+
+    def eval_templates(self, content):
+        return re.sub('{{{{(.*?)}}}}', self.eval_template_content, content, flags=re.DOTALL)
+
+    def eval_file_templates_to_build(self, input_file, out_name):
+        with logger.trylog('evaluating templates ' + input_file + ' -> ' + out_name):
+            open(self.build_file(out_name), 'w').write(self.eval_templates(open(input_file, 'r').read()))
 
 class ModuleCommon:
     def __init__(self):

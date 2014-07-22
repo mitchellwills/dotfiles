@@ -4,16 +4,13 @@
 
 # Configuration
 declare -A robots=(
-    ["hulk"]="192.168.1.2"
-    ["ironman"]="192.168.1.3"
-    ["captainamerica"]="192.168.1.4"
-    ["thor"]="192.168.1.5"
-    ["hawkeye"]="192.168.1.6"
-    ["blackwidow"]="192.168.1.7"
-    ["aero"]="130.215.16.48"
-    )   # List of robot names and their ip addresses
+{{{{
+for robot in config.robots.keys():
+    robot_config = config.robots[robot]
+    out.write('    ["'+robot+'"]="'+robot_config.host+'"\n')
+}}}}    )   # List of robot names and their ip addresses
 settingsFile="$HOME/.rossetup-settings"  # File name to store env vars
-rosVersion="indigo" #the ros version used in hack workspaces
+rosVersion="{{{{config.ros.version}}}}" #the ros version used in hack workspaces
 
 
 
