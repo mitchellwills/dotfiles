@@ -20,6 +20,7 @@ import logger
 
 
 BUILD_DIR_NAME = 'build'
+SRC_DIR_NAME = 'src'
 GIT_DIR_NAME = '.git'
 
 def load_py(name, path):
@@ -129,14 +130,17 @@ def main():
     logger.log('Root Dir: ' + rootdir)
 
     builddir = os.path.join(rootdir, BUILD_DIR_NAME)
+    srcdir = os.path.join(rootdir, SRC_DIR_NAME)
 
     if os.path.exists(builddir):
         shutil.rmtree(builddir)
     os.mkdir(builddir)
+    if not os.path.exists(builddir):
+        os.mkdir(srcdir)
 
     with logger.frame('Loading Configuration'):
         config_loader = ConfigLoader()
-        conf_files = filter(lambda f: f.endswith('.conf'), all_files_recursive(rootdir))
+        conf_files = filter(lambda f: f.endswith('.conf') and not f.startswith(srcdir), all_files_recursive(rootdir))
         for f in conf_files:
             with logger.trylog('loading conf: '+f):
                 config_loader.load_file(f)
@@ -154,15 +158,27 @@ def main():
         config_mods = []
         for filename in os.listdir(rootdir):
             fullpath = os.path.join(rootdir, filename)
-            if os.path.isdir(fullpath) and filename != BUILD_DIR_NAME and filename != BUILD_UTIL_DIR_NAME and not filename.startswith('.') and not filename == 'tools':
+            if os.path.isdir(fullpath) and filename != BUILD_DIR_NAME and filename != BUILD_UTIL_DIR_NAME and not filename.startswith('.') and not filename == 'tools' and not filename == SRC_DIR_NAME:
                 with logger.frame('Loading '+filename):
                     process_folder(filename, fullpath, builddir, config, config_mods)
 
-    steps = ['do_init', 'do_config', 'do_build', 'do_install']
-    for step in steps:
-        with logger.frame(step):
-            process_modules(config_mods, step)
+    with logger.frame('do_init'):
+        process_modules(config_mods, 'do_init')
+    with logger.frame('do_config'):
+        process_modules(config_mods, 'do_config')
 
+    current_path = os.environ['PATH']
+    path = ''
+    if len(current_path) > 0:
+        path = ':'+current_path
+    path = ':'.join([os.path.expanduser(element) for element in config.bash.path]) + path
+    os.environ['PATH'] = path
+    logger.log('Modified PATH: '+path)
+
+    with logger.frame('do_build'):
+        process_modules(config_mods, 'do_build')
+    with logger.frame('do_install'):
+        process_modules(config_mods, 'do_install')
 
 if __name__ == "__main__":
     main()

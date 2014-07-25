@@ -22,6 +22,9 @@ class ModuleContext(object):
     def module_file(self, name):
         return os.path.join(self.wd, name)
 
+    def src_file(self, name):
+        return os.path.join(self.builddir, '..', 'src', name)
+
     def home_file(self, name):
         return os.path.expanduser(os.path.join('~/', name))
 
