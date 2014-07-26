@@ -23,7 +23,7 @@ class InstallNpm(ModuleBase):
 class NpmInstall(ModuleBase):
     @after('InstallNpm')
     def do_install(self):
-        if self.config.install:
+        if self.config.install and self.config.node.install:
             for package in self.config.node.npm.install:
                 with logger.trylog('Running npm install '+package):
                     subprocess.call(['npm', 'install', '-g', package])
