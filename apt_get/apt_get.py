@@ -1,7 +1,6 @@
 from __future__ import absolute_import
 import os
 from collections import OrderedDict
-from install_util import *
 from module_base import *
 import subprocess
 import logger

@@ -1,7 +1,6 @@
 from __future__ import absolute_import
 import os
 from build_util import *
-from install_util import *
 from module_base import *
 
 
@@ -58,4 +57,4 @@ class Tmux(ModuleBase):
                 f.write(c+'\n')
 
     def do_install(self):
-        install_symlink_in_home('.tmux.conf', self.build_file('.tmux.conf'))
+        self.symlink(self.home_file('.tmux.conf'), self.build_file('.tmux.conf'))

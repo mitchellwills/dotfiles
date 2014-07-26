@@ -1,7 +1,6 @@
 from __future__ import absolute_import
 import os
 from collections import OrderedDict
-from install_util import *
 from module_base import *
 
 
@@ -40,4 +39,4 @@ class GitConfig(ModuleBase):
                 f.write('\n')
 
     def do_install(self):
-        install_symlink_in_home('.gitconfig', self.build_file('.gitconfig'))
+        self.symlink(self.home_file('.gitconfig'), self.build_file('.gitconfig'))

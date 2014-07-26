@@ -1,7 +1,6 @@
 from __future__ import print_function
 import os
 import re
-from install_util import *
 import inspect
 import functools
 import urllib2
@@ -24,6 +23,19 @@ class GlobalContext(object):
 
     def home_file(self, name):
         return os.path.expanduser(os.path.join('~/', name))
+
+    def symlink(self, name, target_path):
+        if os.path.lexists(name):
+            if os.path.realpath(name) == target_path:
+                logger.warning('symlink already exists ('+name+' -> '+target_path+')')
+            else:
+                with logger.trylog('backing up old file and createing symlink ('+name+' -> '+target_path+')'):
+                    os.rename(name, name+'.bak');
+                    os.symlink(target_path, name)
+        else:
+            with logger.trylog('createing symlink ('+name+' -> '+target_path+')'):
+                os.symlink(target_path, name)
+
 
 
 class ModuleCommon:

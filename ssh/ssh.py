@@ -1,7 +1,6 @@
 from __future__ import absolute_import
 import os
 from collections import OrderedDict
-from install_util import *
 from module_base import *
 
 class HostConfig(object):
@@ -42,4 +41,4 @@ class SshConfig(ModuleBase):
                     f.write('\n')
 
     def do_install(self):
-        install_symlink_in_home('.ssh/config', self.build_file('.ssh_config'))
+        self.symlink(self.home_file('.ssh/config'), self.build_file('.ssh_config'))

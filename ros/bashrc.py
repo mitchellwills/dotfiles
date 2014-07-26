@@ -2,7 +2,6 @@ from __future__ import absolute_import
 import os
 import shutil
 from build_util import *
-from install_util import *
 from module_base import *
 
 
@@ -15,5 +14,5 @@ class Rossetup(ModuleBase):
 
     def do_install(self):
         if self.config.ros.install:
-            install_symlink_in_home('.rossetup', self.build_file('.rossetup'))
+            self.symlink(self.home_file('.rossetup'), self.build_file('.rossetup'))
 

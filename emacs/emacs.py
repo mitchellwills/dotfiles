@@ -1,7 +1,6 @@
 from __future__ import absolute_import
 import os
 from build_util import *
-from install_util import *
 from module_base import *
 import logger
 import glob
@@ -15,5 +14,5 @@ class Emacs(ModuleBase):
         if not os.path.isdir(self.home_file('.emacs.d')):
             with logger.trylog('creating .emacs.d folder'):
                 os.mkdir(self.home_file('.emacs.d'))
-        install_symlink_in_home('.emacs.d/move-border.el', self.build_file('move-border.el'))
-        install_symlink_in_home('.emacs', self.build_file('.emacs'))
+        self.symlink(self.home_file('.emacs.d/move-border.el'), self.build_file('move-border.el'))
+        self.symlink(self.home_file('.emacs'), self.build_file('.emacs'))
