@@ -132,6 +132,7 @@ def main():
     builddir = os.path.join(rootdir, BUILD_DIR_NAME)
     srcdir = os.path.join(rootdir, SRC_DIR_NAME)
 
+
     if os.path.exists(builddir):
         shutil.rmtree(builddir)
     os.mkdir(builddir)
@@ -153,7 +154,8 @@ def main():
         config.assign('update', args.update, float("inf"))
         config.assign('upgrade', args.upgrade, float("inf"))
 
-    global_context = module_base.GlobalContext(rootdir, config)
+    global_context = module_base.GlobalContext(rootdir, srcdir, config)
+
 
     with logger.frame('Loading Modules'):
         config_mods = []

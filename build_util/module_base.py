@@ -11,12 +11,20 @@ import StringIO
 
 
 class GlobalContext(object):
-    def __init__(self, base_dir, config):
+    def __init__(self, base_dir, src_dir, config):
         self.base_dir = base_dir
+        self.src_dir = src_dir
         self.config = config
 
     def base_file(self, name):
         return os.path.join(self.base_dir, name)
+
+    def src_file(self, name):
+        return os.path.join(self.src_dir, name)
+
+    def home_file(self, name):
+        return os.path.expanduser(os.path.join('~/', name))
+
 
 class ModuleCommon:
     def __init__(self):
@@ -28,18 +36,16 @@ class ModuleContext(object):
         self.wd = wd
         self.builddir = builddir
         self.module_common = module_common
+    def __getattr__(self, name):
+        if name in self.module_common.properties:
+            return self.module_common.properties[name]
+        return getattr(self.global_context, name)
 
     def build_file(self, name):
         return os.path.join(self.builddir, name)
 
     def module_file(self, name):
         return os.path.join(self.wd, name)
-
-    def src_file(self, name):
-        return os.path.join(self.builddir, '..', 'src', name)
-
-    def home_file(self, name):
-        return os.path.expanduser(os.path.join('~/', name))
 
     def amend_build_file(self, name, amendment):
         with open(self.build_file(name), 'a') as f:
@@ -76,10 +82,6 @@ class ModuleContext(object):
     def eval_file_templates_to_build(self, input_file, out_name):
         with logger.trylog('evaluating templates ' + input_file + ' -> ' + out_name):
             open(self.build_file(out_name), 'w').write(self.eval_templates(open(input_file, 'r').read()))
-    def __getattr__(self, name):
-        if name in self.module_common.properties:
-            return self.module_common.properties[name]
-        return getattr(self.global_context, name)
 
 class ModuleBase(object):
     def __init__(self, context):
