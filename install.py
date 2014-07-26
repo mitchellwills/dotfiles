@@ -1,13 +1,24 @@
 #!/usr/bin/python
 import os
 import sys
+import subprocess
 
-BUILD_UTIL_DIR_NAME = 'dotfiles_build_packages'
-rootdir = os.path.dirname(os.path.realpath(__file__))
-buildutildir = os.path.join(rootdir, BUILD_UTIL_DIR_NAME)
-sys.path.append(buildutildir)
+version = sys.version_info
+if version[0] <= 2 and version[1] < 7:
+    print 'Bad python version: ' + str(version)
+    print 'Atempting to execute with python2.7'
+    new_args = list(sys.argv)
+    new_args[0:1] = ['python2.7', os.path.realpath(__file__)]
+    print 'executing: ', new_args
+    subprocess.call(new_args)
 
-import dotfiles.install
+else:
+    BUILD_UTIL_DIR_NAME = 'dotfiles_build_packages'
+    rootdir = os.path.dirname(os.path.realpath(__file__))
+    buildutildir = os.path.join(rootdir, BUILD_UTIL_DIR_NAME)
+    sys.path.append(buildutildir)
 
-if __name__ == "__main__":
-    dotfiles.install.main(rootdir)
+    import dotfiles.install
+
+    if __name__ == "__main__":
+        dotfiles.install.main(rootdir)
