@@ -4,6 +4,7 @@ SCM_CLEAN_SYMBOL="${bash_prompt_green}$CHECK_SYMBOL"
 
 function git_prompt_vars {
   local status="$(git status -bs --porcelain 2> /dev/null)"
+  local status_first_line="$(tail -n1 <<< "${status}")"
 
   local ref=$(git symbolic-ref HEAD 2> /dev/null)
   SCM_BRANCH=${ref#refs/heads/}
@@ -13,13 +14,13 @@ function git_prompt_vars {
   SCM_GIT_BEHIND=''
   local ahead_re='.+ahead ([0-9]+).+'
   local behind_re='.+behind ([0-9]+).+'
-  [[ "${status}" =~ ${ahead_re} ]] && SCM_GIT_AHEAD="${BASH_REMATCH[1]}"
-  [[ "${status}" =~ ${behind_re} ]] && SCM_GIT_BEHIND="${BASH_REMATCH[1]}"
+  [[ "${status_first_line}" =~ ${ahead_re} ]] && SCM_GIT_AHEAD="${BASH_REMATCH[1]}"
+  [[ "${status_first_line}" =~ ${behind_re} ]] && SCM_GIT_BEHIND="${BASH_REMATCH[1]}"
 
   SCM_GIT_UPSTREAM_REMOTE=''
   SCM_GIT_UPSTREAM_BRANCH=''
   local upstream_re='.+\.\.\.([[:print:]]+)/([^[:space:]]+)'
-  [[ "${status}" =~ ${upstream_re} ]] && SCM_GIT_UPSTREAM_REMOTE="${BASH_REMATCH[1]}" && SCM_GIT_UPSTREAM_BRANCH="${BASH_REMATCH[2]}"
+  [[ "${status_first_line}" =~ ${upstream_re} ]] && SCM_GIT_UPSTREAM_REMOTE="${BASH_REMATCH[1]}" && SCM_GIT_UPSTREAM_BRANCH="${BASH_REMATCH[2]}"
 
   SCM_GIT_STASH_COUNT="$(git stash list 2> /dev/null | wc -l | tr -d ' ')"
   SCM_GIT_STAGED_COUNT="$(tail -n +2 <<< "${status}" | grep -v ^[[:space:]?]  | wc -l | tr -d ' ')"
