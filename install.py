@@ -67,7 +67,7 @@ def process_modules(config_mods, func_name):
         if len(evaluated_on_pass) == 0:
             raise Exception('unresolvable dependancies for: ', dependancies.keys())
 
-def process_folder(name, path, builddir, config, config_mods):
+def process_folder(name, path, builddir, global_context, config_mods):
     folder_builddir = builddir
     common = module_base.ModuleCommon()
 
@@ -82,7 +82,7 @@ def process_folder(name, path, builddir, config, config_mods):
         if not os.path.isfile(filepath):
             continue
 
-        context = module_base.ModuleContext(os.path.dirname(filename), folder_builddir, config, common)
+        context = module_base.ModuleContext(global_context, os.path.dirname(filename), folder_builddir, common)
         if filename.endswith('.py'):
             try:
                 py_mod = load_py(name+'.'+filename.replace('.py', ''), filepath)
@@ -153,6 +153,7 @@ def main():
         config.assign('update', args.update, float("inf"))
         config.assign('upgrade', args.upgrade, float("inf"))
 
+    global_context = module_base.GlobalContext(rootdir, config)
 
     with logger.frame('Loading Modules'):
         config_mods = []
@@ -160,7 +161,7 @@ def main():
             fullpath = os.path.join(rootdir, filename)
             if os.path.isdir(fullpath) and filename != BUILD_DIR_NAME and filename != BUILD_UTIL_DIR_NAME and not filename.startswith('.') and not filename == 'tools' and not filename == SRC_DIR_NAME:
                 with logger.frame('Loading '+filename):
-                    process_folder(filename, fullpath, builddir, config, config_mods)
+                    process_folder(filename, fullpath, builddir, global_context, config_mods)
 
     with logger.frame('do_init'):
         process_modules(config_mods, 'do_init')

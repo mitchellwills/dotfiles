@@ -9,12 +9,25 @@ import logger
 import operator
 import StringIO
 
+
+class GlobalContext(object):
+    def __init__(self, base_dir, config):
+        self.base_dir = base_dir
+        self.config = config
+
+    def base_file(self, name):
+        return os.path.join(self.base_dir, name)
+
+class ModuleCommon:
+    def __init__(self):
+        self.properties = dict()
+
 class ModuleContext(object):
-    def __init__(self, wd, builddir, config, common):
+    def __init__(self, global_context, wd, builddir, module_common):
+        self.global_context = global_context
         self.wd = wd
         self.builddir = builddir
-        self.config = config
-        self.common = common
+        self.module_common = module_common
 
     def build_file(self, name):
         return os.path.join(self.builddir, name)
@@ -63,11 +76,10 @@ class ModuleContext(object):
     def eval_file_templates_to_build(self, input_file, out_name):
         with logger.trylog('evaluating templates ' + input_file + ' -> ' + out_name):
             open(self.build_file(out_name), 'w').write(self.eval_templates(open(input_file, 'r').read()))
-
-class ModuleCommon:
-    def __init__(self):
-        self.properties = dict()
-
+    def __getattr__(self, name):
+        if name in self.module_common.properties:
+            return self.module_common.properties[name]
+        return getattr(self.global_context, name)
 
 class ModuleBase(object):
     def __init__(self, context):
@@ -75,14 +87,12 @@ class ModuleBase(object):
         self.config = context.config
 
     def __getattr__(self, name):
-        if name in ModuleContext.__dict__:
-            return lambda *args, **kwargs: ModuleContext.__dict__[name](self.context, *args, **kwargs)
-        return self.context.common.properties[name]
+        return getattr(self.context, name)
 
     def def_common(self, name, value):
-        if name in self.context.common.properties:
+        if name in self.context.module_common.properties:
             raise Exception('Redefinition of ', name)
-        self.context.common.properties[name] = value
+        self.context.module_common.properties[name] = value
 
 def before(spec):
     def wrap(func):

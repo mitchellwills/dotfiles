@@ -13,23 +13,19 @@ class GitConfigEntry:
 class GitConfig(ModuleBase):
     def do_init(self):
         self.config.ensure('git.config')
-        def add_config(name, value, comment = None):
-            self.config.git.config[name] = value
-            if comment is not None:
-                self.config.git.config[name+'.comment'] = comment
+        self.config.ensure('git.aliases')
 
-        self.def_common('add_config', add_config)
+    def add_config(self, name, value, comment = None):
+        self.config.git.config[name] = value
+        if comment is not None:
+            self.config.git.config[name+'.comment'] = comment
 
     def do_config(self):
-        self.add_config('user.name', self.config.identity.name)
-        self.add_config('user.email', self.config.identity.email)
+        for name in sorted(self.config.git.aliases.keys()):
+            value = self.config.git.aliases[name]
+            comment = self.config.git.aliases[name+'.comment']
+            self.add_config('alias.'+name, value, comment)
 
-        self.add_config('color.branch', 'auto')
-        self.add_config('color.diff', 'auto')
-        self.add_config('color.interactive', 'auto')
-        self.add_config('color.status', 'auto')
-
-        self.add_config('push.default', 'simple')
 
     def do_build(self):
         with open(self.build_file('.gitconfig'), 'w') as f:
@@ -40,7 +36,7 @@ class GitConfig(ModuleBase):
                     comment = self.config.git.config[category][key+'.comment']
                     if comment is not None:
                         f.write('\t# '+comment+'\n')
-                    f.write('\t'+key+' = '+value+'\n')
+                    f.write('\t'+key+' = '+self.eval_templates(value)+'\n')
                 f.write('\n')
 
     def do_install(self):
