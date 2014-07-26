@@ -4,7 +4,7 @@ SCM_CLEAN_SYMBOL="${bash_prompt_green}$CHECK_SYMBOL"
 
 function git_prompt_vars {
   local status="$(git status -bs --porcelain 2> /dev/null)"
-  local status_first_line="$(tail -n1 <<< "${status}")"
+  local status_first_line="$(head -n1 <<< "${status}")"
 
   local ref=$(git symbolic-ref HEAD 2> /dev/null)
   SCM_BRANCH=${ref#refs/heads/}
