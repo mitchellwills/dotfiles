@@ -1,9 +1,7 @@
 from __future__ import absolute_import
-import os
-from collections import OrderedDict
-from module_base import *
+from dotfiles.module_base import *
+import dotfiles.logger as logger
 import subprocess
-import logger
 
 
 class AptGetRepository(ModuleBase):

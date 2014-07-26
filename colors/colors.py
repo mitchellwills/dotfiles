@@ -1,7 +1,5 @@
 from __future__ import absolute_import
-import os
-import shutil
-from module_base import *
+from dotfiles.module_base import *
 
 class Colors(ModuleBase):
     def do_install(self):

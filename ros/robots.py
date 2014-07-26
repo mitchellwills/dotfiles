@@ -1,9 +1,5 @@
 from __future__ import absolute_import
-import os
-import shutil
-from build_util import *
-from module_base import *
-
+from dotfiles.module_base import *
 
 class Robots(ModuleBase):
     def do_config(self):

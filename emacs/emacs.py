@@ -1,8 +1,7 @@
 from __future__ import absolute_import
 import os
-from build_util import *
-from module_base import *
-import logger
+from dotfiles.module_base import *
+import dotfiles.logger as logger
 import glob
 
 class Emacs(ModuleBase):

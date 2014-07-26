@@ -1,8 +1,7 @@
 from __future__ import absolute_import
 import os
-from build_util import *
-from module_base import *
-
+from dotfiles.module_base import *
+from dotfiles.util import *
 
 class Bashrc(ModuleBase):
     def do_init(self):

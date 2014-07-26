@@ -1,7 +1,5 @@
 from __future__ import absolute_import
-import os
-from collections import OrderedDict
-from module_base import *
+from dotfiles.module_base import *
 
 class HostConfig(object):
     def __init__(self, host, user, hostname, identity):

@@ -1,7 +1,7 @@
 from __future__ import absolute_import
-from module_base import *
-from config_util import *
-from build_util import *
+from dotfiles.module_base import *
+from dotfiles.config import *
+from dotfiles.util import *
 
 colors = [
     'black',

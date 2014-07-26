@@ -1,7 +1,6 @@
 from __future__ import absolute_import
+from dotfiles.module_base import *
 import os
-from collections import OrderedDict
-from module_base import *
 import subprocess
 
 class RosPackage(ModuleBase):

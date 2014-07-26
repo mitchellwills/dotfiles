@@ -1,9 +1,7 @@
 from __future__ import absolute_import
-import os
-from build_util import *
-from module_base import *
-from src_package import *
-import logger
+from dotfiles.module_base import *
+from dotfiles.src_package import *
+import dotfiles.logger as logger
 import subprocess
 
 class InstallNpm(ModuleBase):

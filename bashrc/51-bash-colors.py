@@ -1,5 +1,5 @@
 from __future__ import absolute_import
-from module_base import *
+from dotfiles.module_base import *
 
 colors = {
     'black':'0',
