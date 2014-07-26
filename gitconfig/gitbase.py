@@ -2,11 +2,6 @@ from __future__ import absolute_import
 from dotfiles.module_base import *
 
 
-class GitConfigEntry:
-    def __init__(self, value, comment):
-        self.value = value
-        self.comment = comment
-
 class GitConfig(ModuleBase):
     def do_init(self):
         self.config.ensure('git.config')
