@@ -42,5 +42,8 @@ class SrcPackage(object):
 
     def make_install(self):
         with logger.trylog('Make Installing Src: '+self.name):
-            os.system('cd "'+self.src_dir+'"; make install '+self.module.config.src.make_args)
+            command = 'cd "'+self.src_dir+'"; make install'
+            if self.module.config.src.make_args is not None:
+                command += ' ' + self.module.config.src.make_args
+            os.system(command)
 
