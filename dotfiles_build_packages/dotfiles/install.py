@@ -3,7 +3,6 @@ import os
 import shutil
 import sys
 import glob
-import subprocess
 import argparse
 
 from dotfiles.config import ConfigLoader
@@ -85,7 +84,7 @@ def process_folder(name, path, builddir, global_context, config_mods):
                     thing = py_mod.__dict__[name]
                     #TODO figure out how to do class type instead of this
                     if isinstance(thing, type(module_base.ModuleBase)) and issubclass(thing, module_base.ModuleBase):
-                        logger.success('Loading module: '+filename+':'+name)
+                        logger.success('Loading module: '+filename+':'+name, verbose=True)
                         mod_found = True
                         config_mods.append(thing(context))
                 if not mod_found:
@@ -101,9 +100,10 @@ def main(rootdir):
     parser.add_argument('--no-install', help="don't run apt-get install", dest='install', action='store_false', default=None)
     parser.add_argument('--install', help="run apt-get install", dest='install', action='store_true', default=None)
     parser.add_argument('--upgrade', help="run apt-get upgrade", dest='upgrade', action='store_true', default=False)
+    parser.add_argument('--verbose', help="print verbose output", dest='verbose', action='store_true', default=False)
 
     args = parser.parse_args()
-    logger.log(args)
+    logger.init(args.verbose)
 
     if args.install is None:
         args.install = prompt_yes_no('install software?')

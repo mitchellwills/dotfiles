@@ -2,7 +2,6 @@ from __future__ import absolute_import
 from dotfiles.module_base import *
 from dotfiles.src_package import *
 import dotfiles.logger as logger
-import subprocess
 
 class InstallNpm(ModuleBase):
     def do_config(self):
@@ -22,6 +21,5 @@ class NpmInstall(ModuleBase):
     def do_install(self):
         if self.config.install and self.config.node.install:
             for package in self.config.node.npm.install:
-                with logger.trylog('Running npm install '+package):
-                    subprocess.call(['npm', 'install', '-g', package])
+                logger.call(['npm', 'install', '-g', package])
 

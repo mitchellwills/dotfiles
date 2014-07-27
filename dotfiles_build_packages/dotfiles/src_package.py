@@ -10,14 +10,13 @@ class GitRepo(SrcRepo):
         self.branch = branch
     def update(self, directory):
         if os.path.isdir(directory):
-            os.system('cd "'+directory+'"; git fetch')
+            logger.call(['git', 'fetch'], cwd=directory)
         else:
-            os.system('git clone "'+self.path+'" "'+directory+'"')
+            logger.call(['git', 'clone', self.path, directory])
         if self.branch is not None:
-            os.system('cd "'+directory+'"; git checkout '+self.branch)
+            logger.call(['git', 'checkout', self.branch], cwd=directory)
     def clean(self, directory):
-        os.system('cd "'+directory+'"; git clean -xdf')
-
+        logger.call(['git', 'clean', '-xdf'], cwd=directory)
 
 class SrcPackage(object):
     def __init__(self, name, src_repo, module):
@@ -28,22 +27,22 @@ class SrcPackage(object):
 
     def update(self):
         if os.path.isdir(self.src_dir) and self.module.config.src.clean_src:
-            with logger.trylog('Cleaning Src: '+self.name):
+            with logger.frame('Cleaning Src: '+self.name):
                 self.src_repo.clean(self.src_dir)
-        with logger.trylog('Updating Src: '+self.name):
+        with logger.frame('Updating Src: '+self.name):
             self.src_repo.update(self.src_dir)
 
     def configure(self, prefix = None):
-        with logger.trylog('Configuring Src: '+self.name):
-            configure_command = './configure'
+        with logger.frame('Configuring Src: '+self.name):
+            configure_command = ['./configure']
             if prefix is not None:
-                configure_command += ' --prefix="'+os.path.expanduser(prefix)+'"'
-            os.system('cd "'+self.src_dir+'"; '+configure_command)
+                configure_command.append('--prefix='+os.path.expanduser(prefix))
+            logger.call(configure_command, cwd=self.src_dir)
 
     def make_install(self):
-        with logger.trylog('Make Installing Src: '+self.name):
-            command = 'cd "'+self.src_dir+'"; make install'
+        with logger.frame('Make Installing Src: '+self.name):
+            command = ['make', 'install']
             if self.module.config.src.make_args is not None:
-                command += ' ' + self.module.config.src.make_args
-            os.system(command)
+                command.extend(self.module.config.src.make_args)
+            logger.call(command, cwd=self.src_dir)
 

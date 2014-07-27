@@ -15,9 +15,9 @@ WARNING = LogType(bash_yellow)
 NORMAL = LogType(bash_normal)
 
 class LogFrame:
-    def __init__(self, message, t):
+    def __init__(self, message, **kwargs):
         self.message = message
-        log(message, t)
+        log(message, **kwargs)
 
     def __enter__(self):
         _log_frames.append(self)
@@ -28,41 +28,59 @@ class LogFrame:
 _log_frames = []
 
 class TryLog:
-    def __init__(self, message):
+    def __init__(self, message, kwargs):
         self.message = message
+        self.kwargs = kwargs
 
     def __enter__(self):
         pass
 
     def __exit__(self, type, value, traceback):
         if traceback is None:
-            success(self.message)
+            success(self.message, **self.kwargs)
         else:
-            failed(str(value)+': '+self.message)
+            failed(str(value)+': '+self.message, **self.kwargs)
 
-def trylog(message):
-    return TryLog(message)
 
-def log(message, t = NORMAL):
-    print ('\t'*len(_log_frames)) + t.color + str(message) + bash_normal
+print_verbose = False
+def init(should_print_verbose):
+    global print_verbose
+    print_verbose = should_print_verbose
 
-def success(message):
-    log(message, SUCCESS)
 
-def failed(message):
-    log(message, FAILED)
+def trylog(message, **kwargs):
+    return TryLog(message, kwargs)
 
-def warning(message):
-    log(message, WARNING)
+def log(message, t = NORMAL, verbose = False):
+    if not verbose or print_verbose:
+        print ('\t'*len(_log_frames)) + t.color + str(message) + bash_normal
 
-def frame(message, t = NORMAL):
-    return LogFrame(message, t)
+def success(message, **kwargs):
+    kwargs['t'] = SUCCESS
+    log(message, **kwargs)
+
+def failed(message, **kwargs):
+    kwargs['t'] = FAILED
+    log(message, **kwargs)
+
+def warning(message, **kwargs):
+    kwargs['t'] = WARNING
+    log(message, **kwargs)
+
+def frame(message, **kwargs):
+    return LogFrame(message, **kwargs)
 
 
 def call(*args, **kwargs):
-    with trylog('runnning: '+str(args[0])):
+    log_message = 'runnning: '+str(args[0])
+    if 'cwd' in kwargs:
+        log_message += '\t(wd='+kwargs['cwd']+')'
+    with trylog(log_message):
         if 'stdout' not in kwargs:
             kwargs['stdout'] = subprocess.PIPE
+        if 'stderr' not in kwargs:
+            kwargs['stderr'] = subprocess.PIPE
         p = subprocess.Popen(*args, **kwargs)
         stdout, stderr = p.communicate()
-        print 'done'
+        if p.returncode != 0:
+            raise Exception('Error Code: '+str(p.returncode))

@@ -3,16 +3,14 @@ from dotfiles.module_base import *
 
 
 class GitConfig(ModuleBase):
-    def do_init(self):
-        self.config.ensure('git.config')
-        self.config.ensure('git.aliases')
-
     def add_config(self, name, value, comment = None):
         self.config.git.config[name] = value
         if comment is not None:
             self.config.git.config[name+'.comment'] = comment
 
     def do_config(self):
+        self.config.ensure('git.config')
+        self.config.ensure('git.aliases')
         for name in sorted(self.config.git.aliases.keys()):
             value = self.config.git.aliases[name]
             comment = self.config.git.aliases[name+'.comment']

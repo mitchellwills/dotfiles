@@ -1,6 +1,7 @@
 import os
 import glob
 import imp
+import subprocess
 
 def concat_files(pathspec):
     files = glob.glob(pathspec)
@@ -29,3 +30,7 @@ def prompt_yes_no(question):
         response = raw_input(question + ' (y/N): ').lower()
     return response in yes_responses
 
+def execute_with_stdout(command):
+    p = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    out, err = p.communicate()
+    return out

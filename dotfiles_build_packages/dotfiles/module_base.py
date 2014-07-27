@@ -68,7 +68,7 @@ class ModuleContext(object):
 
     def concatenate_files_to_build(self, files, build_file):
         for f in files:
-            with logger.trylog('amending ' + f + ' -> ' + build_file):
+            with logger.trylog('amending ' + f + ' -> ' + build_file, verbose=True):
                 self.amend_build_file_with_file(build_file, f)
 
     def download_build_file(self, name, url):

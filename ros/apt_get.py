@@ -1,7 +1,6 @@
 from __future__ import absolute_import
 from dotfiles.module_base import *
 import os
-import subprocess
 
 class RosPackage(ModuleBase):
     def do_config(self):
@@ -28,18 +27,24 @@ class RosRepo(ModuleBase):
             logger.log('Installing ROS '+self.config.ros.version)
             # setup ros package repo
             if self.config.ros.update_repo:
-                with logger.trylog('Installing ROS repo source and key'):
-                    subprocess.call('sudo sh -c \'echo "'+self.ros_package_repo+'" > '+self.ros_repo_file+'\'', shell=True)
-                    subprocess.call('wget https://raw.githubusercontent.com/ros/rosdistro/master/ros.key -O - | sudo apt-key add -', shell=True)
+                with logger/etc/ros/rosdep/sources.list.d/20-defaul.trylog('Installing ROS repo source and key'):
+                    logger.call('sudo sh -c \'echo "'+self.ros_package_repo+'" > '+self.ros_repo_file+'\'', shell=True)
+                    logger.call('wget https://raw.githubusercontent.com/ros/rosdistro/master/ros.key -O - | sudo apt-key add -', shell=True)
         else:
             logger.warning('Not installing ROS apt-get repo')
 
 class RosDep(ModuleBase):
     @after('AptGetInstall')
     def do_install(self):
-        if self.config.install and self.config.update and self.config.ros.install:
-            if subprocess.call('rosdep update 2>/dev/null', shell=True) != 0:
-                subprocess.call(['sudo', 'rosdep', 'init'])
-                subprocess.call(['rosdep', 'update'])
+        if self.config.install and self.config.ros.install:
+            if not os.path.isfile('/etc/ros/rosdep/sources.list.d/20-default.list'):
+                logger.call(['sudo', 'rosdep', 'init'])
+            else:
+                logger.warning('rosdep already initialized')
+
+            if self.config.update:
+                logger.call(['rosdep', 'update'])
+            else:
+                logger.warning('Not updating rosdep')
         else:
-            logger.warning('Not checking rosdep')
+            logger.warning('Not installing')

@@ -1,12 +1,7 @@
 import os
 import re
-import subprocess
 import logger
-
-def execute_with_stdout(command):
-    p = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    out, err = p.communicate()
-    return out
+from util import *
 
 def parse_value(val):
     if type(val) is not str:
