@@ -12,6 +12,8 @@ class PipInstall(ModuleBase):
         if self.config.install:
             if self.config.python.pip.install:
                 install_command = ['sudo', 'pip', 'install']
+                if self.config.upgrade:
+                    install_command.append('--upgrade')
                 install_command.extend(self.config.python.pip.install)
                 logger.call(install_command)
             else:

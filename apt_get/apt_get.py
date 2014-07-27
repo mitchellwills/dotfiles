@@ -33,7 +33,7 @@ class AptGetUpgrade(ModuleBase):
 class AptGetInstall(ModuleBase):
     def do_install(self):
         if self.config.install:
-            install_command = ['sudo', 'apt-get', 'install', '-q']
+            install_command = ['sudo', 'apt-get', 'install', '-y']
             install_command.extend(self.config.apt_get.install)
             logger.call(install_command)
         else:

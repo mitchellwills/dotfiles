@@ -76,11 +76,14 @@ def call(*args, **kwargs):
     if 'cwd' in kwargs:
         log_message += '\t(wd='+kwargs['cwd']+')'
     with trylog(log_message):
-        if 'stdout' not in kwargs:
-            kwargs['stdout'] = subprocess.PIPE
-        if 'stderr' not in kwargs:
-            kwargs['stderr'] = subprocess.PIPE
+        if not print_verbose:
+            if 'stdout' not in kwargs:
+                kwargs['stdout'] = subprocess.PIPE
+            if 'stderr' not in kwargs:
+                kwargs['stderr'] = subprocess.PIPE
         p = subprocess.Popen(*args, **kwargs)
         stdout, stderr = p.communicate()
         if p.returncode != 0:
+            print stdout
+            print stderr
             raise Exception('Error Code: '+str(p.returncode))
