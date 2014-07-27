@@ -9,7 +9,6 @@ class FluxGuiAptGet(ModuleBase):
             self.config.apt_get.add('install', ['fluxgui'], 0)
 
 class Flux(ModuleBase):
-    @before('AptGetUpdate')
     def do_install(self):
         if self.config.install and self.config.flux.install:
             self.download_build_file('xflux64.tgz', 'https://justgetflux.com/linux/xflux64.tgz')

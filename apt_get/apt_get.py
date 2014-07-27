@@ -19,8 +19,8 @@ class AptGetUpdate(ModuleBase):
     @before('AptGetUpgrade')
     def do_install(self):
         if self.config.install and self.config.update:
-            with logger.trylog('Running apt-get update'):
-                subprocess.call(['sudo', 'apt-get', '-y', 'update'])
+            with logger.frame('apt-get update'):
+                logger.call(['sudo', 'apt-get', '-y', 'update'])
         else:
             logger.warning('not running apt-get update')
 

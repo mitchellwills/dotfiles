@@ -1,3 +1,4 @@
+import subprocess
 
 bash_normal = '\033[0m'
 bash_red = '\033[0;31m'
@@ -23,7 +24,7 @@ class LogFrame:
 
     def __exit__(self, type, value, traceback):
         _log_frames.pop()
-    
+
 _log_frames = []
 
 class TryLog:
@@ -57,3 +58,11 @@ def warning(message):
 def frame(message, t = NORMAL):
     return LogFrame(message, t)
 
+
+def call(*args, **kwargs):
+    with trylog('runnning: '+str(args[0])):
+        if 'stdout' not in kwargs:
+            kwargs['stdout'] = subprocess.PIPE
+        p = subprocess.Popen(*args, **kwargs)
+        stdout, stderr = p.communicate()
+        print 'done'
