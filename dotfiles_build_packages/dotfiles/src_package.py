@@ -14,19 +14,19 @@ class GitRepo(SrcRepo):
         else:
             logger.call(['git', 'clone', self.path, directory])
         if self.branch is not None:
-            logger.call(['git', 'checkout', self.branch], cwd=directory)
+            logger.call(['git', 'checkout', self.branch], cwd=directory, output_handler=logger.log_stderr)
     def clean(self, directory):
         logger.call(['git', 'clean', '-xdf'], cwd=directory)
 
 class SrcPackage(object):
-    def __init__(self, name, src_repo, module):
+    def __init__(self, name, src_repo, context):
         self.name = name
         self.src_repo = src_repo
-        self.module = module
-        self.src_dir = self.module.src_file(self.name)
+        self.context = context
+        self.src_dir = self.context.src_file(self.name)
 
     def update(self):
-        if os.path.isdir(self.src_dir) and self.module.config.src.clean_src:
+        if os.path.isdir(self.src_dir) and self.context.config.src.clean_src:
             with logger.frame('Cleaning Src: '+self.name):
                 self.src_repo.clean(self.src_dir)
         with logger.frame('Updating Src: '+self.name):
@@ -42,7 +42,7 @@ class SrcPackage(object):
     def make_install(self):
         with logger.frame('Make Installing Src: '+self.name):
             command = ['make', 'install']
-            if self.module.config.src.make_args is not None:
-                command.extend(self.module.config.src.make_args)
+            if self.context.config.src.make_args is not None:
+                command.extend(self.context.config.src.make_args)
             logger.call(command, cwd=self.src_dir)
 

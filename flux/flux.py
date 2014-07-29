@@ -1,5 +1,6 @@
 from __future__ import absolute_import
 from dotfiles.module_base import *
+import os
 
 class FluxGuiAptGet(ModuleBase):
     def do_config(self):
@@ -14,4 +15,7 @@ class Flux(ModuleBase):
             with logger.frame('Extracting xflux'):
                 logger.call(['tar', '-xzf', self.build_file('xflux64.tgz'), '--directory='+self.build_file('')])
             with logger.frame('Installing xflux'):
-                logger.call(['sudo', 'mv', self.build_file('xflux'), '/usr/bin'])
+                if self.config.sudo:
+                    logger.call(['sudo', 'mv', self.build_file('xflux'), '/usr/bin'])
+                else:
+                    logger.call(['mv', self.build_file('xflux'), os.path.expanduser(self.config.local_install.dir)])

@@ -70,20 +70,29 @@ def warning(message, **kwargs):
 def frame(message, **kwargs):
     return LogFrame(message, **kwargs)
 
+def log_stdout(stdout, stderr):
+    for line in stdout.splitlines():
+        log(line)
+def log_stderr(stdout, stderr):
+    for line in stderr.splitlines():
+        log(line)
 
 def call(*args, **kwargs):
     log_message = 'runnning: '+str(args[0])
     if 'cwd' in kwargs:
         log_message += '\t(wd='+kwargs['cwd']+')'
-    with trylog(log_message):
-        if not print_verbose:
-            if 'stdout' not in kwargs:
-                kwargs['stdout'] = subprocess.PIPE
-            if 'stderr' not in kwargs:
-                kwargs['stderr'] = subprocess.PIPE
-        p = subprocess.Popen(*args, **kwargs)
-        stdout, stderr = p.communicate()
-        if p.returncode != 0:
-            print stdout
-            print stderr
-            raise Exception('Error Code: '+str(p.returncode))
+    with frame(log_message):
+        with trylog('done'):
+            if not print_verbose:
+                if 'stdout' not in kwargs:
+                    kwargs['stdout'] = subprocess.PIPE
+                if 'stderr' not in kwargs:
+                    kwargs['stderr'] = subprocess.PIPE
+            output_handler = kwargs.pop('output_handler', lambda out, err: None)
+            p = subprocess.Popen(*args, **kwargs)
+            stdout, stderr = p.communicate()
+            output_handler(stdout, stderr)
+            if p.returncode != 0:
+                print stdout
+                print stderr
+                raise Exception('Error Code: '+str(p.returncode))
