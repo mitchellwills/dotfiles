@@ -37,18 +37,18 @@ def process_modules(config_mods, func_name):
         if hasattr(mod, func_name):
             func = getattr(mod, func_name)
             step = Step(mod, func)
-            step.deps.update(value_or_empty_set(func, 'after'))
+            step.deps.update(value_or_empty_set(func.__func__, 'after'))
             step.deps.update(value_or_empty_set(mod.__class__, 'after'))
             steps[step.mod_name()] = step
 
     # move items from before to the coresponding after
     for mod_name in steps:
         step = steps[mod_name]
-        for build_dep in value_or_empty_set(func, 'before') | value_or_empty_set(mod, 'before'):
+        for build_dep in value_or_empty_set(step.func.__func__, 'before') | value_or_empty_set(step.mod, 'before'):
             if build_dep not in steps:
                 raise Exception('No module found: ' + build_dep + ', was dep for ' + mod_name)
             else:
-                dependancies[build_dep].deps.add(mod_name)
+                steps[build_dep].deps.add(mod_name)
 
     # evaluate steps respecting dependancies
     evaluated = set()
