@@ -3,7 +3,6 @@ from dotfiles.package_base import *
 from dotfiles.src_package import *
 
 
-@after('RosRepo')
 class NodePackage(SrcConfigureMakeInstallPackage):
     def __init__(self, context):
         SrcConfigureMakeInstallPackage.__init__(self, context, 'node', GitRepo('https://github.com/joyent/node.git', 'v0.11.13'))
