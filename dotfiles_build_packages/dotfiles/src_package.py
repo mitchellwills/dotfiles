@@ -1,5 +1,7 @@
 import logger
 import os
+from dotfiles.actions import *
+from dotfiles.util import *
 
 class SrcRepo(object):
     pass
@@ -46,3 +48,19 @@ class SrcPackage(object):
                 command.extend(self.context.config.src.make_args)
             logger.call(command, cwd=self.src_dir)
 
+
+class SrcPackageActionFactory(PackageActionFactory):
+    def name(self):
+        return 'src'
+
+    def update(self, package):
+        return [package.update]
+
+    def configure(self, package):
+        return [lambda: package.configure(os.path.expanduser(self.config.local_install.dir))]
+
+    def make_install(self, package):
+        return [package.make_install]
+
+    def update_configure_make_install(self, package):
+        return concat_lists(self.update(package), self.configure(package), self.make_install(package))

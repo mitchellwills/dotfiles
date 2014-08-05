@@ -71,11 +71,13 @@ def frame(message, **kwargs):
     return LogFrame(message, **kwargs)
 
 def log_stdout(stdout, stderr):
-    for line in stdout.splitlines():
-        log(line)
+    if stdout is not None:
+        for line in stdout.splitlines():
+            log(line)
 def log_stderr(stdout, stderr):
-    for line in stderr.splitlines():
-        log(line)
+    if stderr is not None:
+        for line in stderr.splitlines():
+            log(line)
 
 def call(*args, **kwargs):
     log_message = 'runnning: '+str(args[0])

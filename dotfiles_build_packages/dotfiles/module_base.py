@@ -7,22 +7,32 @@ import urllib2
 import logger
 import operator
 import StringIO
+from dotfiles.util import *
 
+BUILD_DIR_NAME = 'build'
+SRC_DIR_NAME = 'src'
 
 class GlobalContext(object):
-    def __init__(self, base_dir, src_dir, config):
+    def __init__(self, base_dir, src_dir, config, action_factories):
         self.base_dir = base_dir
         self.src_dir = src_dir
         self.config = config
+        self.action_factories = action_factories
 
     def base_file(self, name):
         return os.path.join(self.base_dir, name)
 
     def src_file(self, name):
-        return os.path.join(self.src_dir, name)
+        return os.path.join(self.base_file(SRC_DIR_NAME), name)
+
+    def build_file(self, name):
+        return os.path.join(self.base_file(BUILD_DIR_NAME), name)
 
     def home_file(self, name):
         return os.path.expanduser(os.path.join('~/', name))
+
+    def action(self, name):
+        return find_by_name(self.action_factories, name)
 
     def symlink(self, name, target_path):
         if os.path.lexists(name):
@@ -38,9 +48,6 @@ class GlobalContext(object):
 
 
 
-class ModuleCommon:
-    def __init__(self):
-        self.properties = dict()
 
 class ModuleContext(object):
     def __init__(self, global_context, wd, builddir, module_common):
@@ -48,13 +55,6 @@ class ModuleContext(object):
         self.wd = wd
         self.builddir = builddir
         self.module_common = module_common
-    def __getattr__(self, name):
-        if name in self.module_common.properties:
-            return self.module_common.properties[name]
-        return getattr(self.global_context, name)
-
-    def build_file(self, name):
-        return os.path.join(self.builddir, name)
 
     def module_file(self, name):
         return os.path.join(self.wd, name)

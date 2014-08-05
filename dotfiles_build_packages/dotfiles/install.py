@@ -18,63 +18,35 @@ SRC_DIR_NAME = 'src'
 GIT_DIR_NAME = '.git'
 BUILD_UTIL_DIR_NAME = 'dotfiles_build_packages'
 
-def value_or_empty_set(obj, name):
-    if hasattr(obj, name):
-        return getattr(obj, name)
-    return set()
-
-class Step():
-    def __init__(self, mod, func):
-        self.func = func
-        self.mod = mod
-        self.deps = set()
-    def mod_name(self):
-        return self.mod.__class__.__name__
-
-def process_modules(config_mods, func_name):
-    steps = dict()
-    for mod in config_mods:
-        if hasattr(mod, func_name):
-            func = getattr(mod, func_name)
-            step = Step(mod, func)
-            step.deps.update(value_or_empty_set(func.__func__, 'after'))
-            step.deps.update(value_or_empty_set(mod.__class__, 'after'))
-            steps[step.mod_name()] = step
-
-    # move items from before to the coresponding after
-    for mod_name in steps:
-        step = steps[mod_name]
-        for build_dep in value_or_empty_set(step.func.__func__, 'before') | value_or_empty_set(step.mod, 'before'):
-            if build_dep not in steps:
-                raise Exception('No module found: ' + build_dep + ', was dep for ' + mod_name)
-            else:
-                steps[build_dep].deps.add(mod_name)
-
-    # evaluate steps respecting dependancies
+def order_by_dependancies(packages):
+    install_steps = []
+    remaining_packages = set(packages)
     evaluated = set()
     while True:
         evaluated_on_pass = set()
-        for mod_name in steps:
-            step = steps[mod_name]
-            if evaluated.issuperset(step.deps):
-                with logger.frame(mod_name+'.'+func_name+': '+str(list(step.deps))):
-                    step.func()
-                    evaluated_on_pass.add(mod_name)
+        pass_steps = []
+        for package in remaining_packages:
+            package_deps = object_deps(package)
+            if evaluated.issuperset(package_deps):
+                pass_steps.append(package)
+                evaluated_on_pass.add(package.name())
 
         evaluated.update(evaluated_on_pass)
-        for mod_name in evaluated_on_pass:
-            steps.pop(mod_name)
+        remaining_packages -= set(pass_steps)
+        install_steps.append(pass_steps)
 
-        if len(steps) == 0:
+        if len(remaining_packages) == 0:
             break
         if len(evaluated_on_pass) == 0:
-            raise Exception('unresolvable dependancies for: ', dependancies.keys())
+            raise Exception('unresolvable dependancies for: ', names_of_items(remaining_packages))
+    return install_steps
 
-def process_folder(name, path, builddir, global_context, config_mods):
-    folder_builddir = builddir
-    common = module_base.ModuleCommon()
 
+def load_packages(path):
+    packages = []
+    action_factories = []
     files = all_files_recursive(path)
+    name = os.path.basename(path)
 
     for filename in files:
         filepath = os.path.join(path, filename)
@@ -85,7 +57,6 @@ def process_folder(name, path, builddir, global_context, config_mods):
         if not os.path.isfile(filepath):
             continue
 
-        context = module_base.ModuleContext(global_context, os.path.dirname(filename), folder_builddir, common)
         if filename.endswith('.py'):
             try:
                 py_mod = load_py(name+'.'+filename.replace('.py', ''), filepath)
@@ -93,32 +64,32 @@ def process_folder(name, path, builddir, global_context, config_mods):
                 for name in py_mod.__dict__:
                     thing = py_mod.__dict__[name]
                     if inspect.isclass(thing):
-                        if thing.__module__ == 'dotfiles.package_base' or thing.__module__ == 'dotfiles.module_base':
+                        if thing.__module__ == 'dotfiles.package_base' or thing.__module__ == 'dotfiles.module_base' or thing.__module__ == 'dotfiles.actions':
                             continue
-                        if issubclass(thing, module_base.ModuleBase):
-                            logger.success('Loading module: '+filename+':'+name, verbose=True)
+                        if issubclass(thing, package_base.PackageBase):
+                            logger.success('Loading package: '+filename+':'+name, verbose=True)
                             mod_found = True
-                            config_mods.append(thing(context))
+                            package = thing()
+                            packages.append(package)
+                        if issubclass(thing, package_base.PackageActionFactory):
+                            logger.success('Loading package action factory: '+filename+':'+name, verbose=True)
+                            mod_found = True
+                            action_factory = thing()
+                            action_factories.append(action_factory)
                 if not mod_found:
                     logger.failed('No modules found in: '+filename)
             except IOError as e:
                 logger.failed( 'Error loading module: '+str(e))
+    return (packages, action_factories)
 
 
 
 def main(rootdir):
     parser = argparse.ArgumentParser(description='Install dotfiles')
-    parser.add_argument('--no-update', help="don't run apt-get update", dest='update', action='store_false', default=True)
-    parser.add_argument('--no-install', help="don't run apt-get install", dest='install', action='store_false', default=None)
-    parser.add_argument('--install', help="run apt-get install", dest='install', action='store_true', default=None)
-    parser.add_argument('--upgrade', help="run apt-get upgrade", dest='upgrade', action='store_true', default=False)
     parser.add_argument('--verbose', help="print verbose output", dest='verbose', action='store_true', default=False)
 
     args = parser.parse_args()
     logger.init(args.verbose)
-
-    if args.install is None:
-        args.install = prompt_yes_no('install software?')
 
     logger.log('Root Dir: ' + rootdir)
 
@@ -143,40 +114,49 @@ def main(rootdir):
 
 
         config = config_loader.build()
-        config.assign('install', args.install, float("inf"))
-        config.assign('update', args.update, float("inf"))
-        config.assign('upgrade', args.upgrade, float("inf"))
 
-        if config.sudo is None:
-            config.assign('sudo', prompt_yes_no('use sudo'), float("inf"))
-
-    global_context = module_base.GlobalContext(rootdir, srcdir, config)
+        if config.install_local is None:
+            config.assign('install_local', prompt_yes_no('install local'), float("inf"))
 
 
-    config_mods = []
-    config_pkgs = []
-    with logger.frame('Loading Modules'):
+    packages = []
+    action_factories = []
+    with logger.frame('Loading packages'):
         for filename in os.listdir(rootdir):
             fullpath = os.path.join(rootdir, filename)
             if os.path.isdir(fullpath) and filename != BUILD_DIR_NAME and filename != BUILD_UTIL_DIR_NAME and not filename.startswith('.') and not filename == 'tools' and not filename == SRC_DIR_NAME:
                 with logger.frame('Loading '+filename):
-                    process_folder(filename, fullpath, builddir, global_context, config_mods)
+                    module_packages, module_action_factories = load_packages(fullpath)
+                    packages.extend(module_packages)
+                    action_factories.extend(module_action_factories)
 
-    with logger.frame('do_init'):
-        process_modules(config_mods, 'do_init')
-    with logger.frame('do_config'):
-        process_modules(config_mods, 'do_config')
+    global_context = module_base.GlobalContext(rootdir, srcdir, config, action_factories)
+    for package in packages:
+        package.init_package(global_context)
+    for factory in action_factories:
+        factory.init_factory(global_context)
 
 
-    current_path = os.environ['PATH']
-    path = ''
-    if len(current_path) > 0:
-        path = ':'+current_path
-    path = ':'.join([os.path.expanduser(element) for element in config.bash.path]) + path
-    os.environ['PATH'] = path
-    logger.log('Modified PATH: '+path)
+    logger.log('loaded package action factories: ' + str(names_of_items(action_factories)))
+    logger.log('loaded packages: ' + str(names_of_items(packages)))
 
-    with logger.frame('do_build'):
-        process_modules(config_mods, 'do_build')
-    with logger.frame('do_install'):
-        process_modules(config_mods, 'do_install')
+    packages_to_install = set()
+    packages_to_install.update(filter(lambda package: package.name() in config.install, packages))
+    logger.log('Installing: ' + str(names_of_items(packages_to_install)))
+
+    packages_with_deps = set(packages_to_install)
+    for package in packages_to_install:
+        dep_names = object_deps(package)
+        for dep_name in dep_names:
+            dep = find_by_name(packages, dep_name)
+            if dep is None:
+                raise Exception('Cannot resolve dep: ', dep_name)
+            packages_with_deps.add(dep)
+    logger.log('Installing deps: ' + str(names_of_items(packages_with_deps)))
+
+    package_install_stages = order_by_dependancies(packages_with_deps)
+    for package_stage in package_install_stages:
+        for package in package_stage:
+            for step in package.install():
+                step()
+

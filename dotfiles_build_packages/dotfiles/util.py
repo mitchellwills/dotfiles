@@ -34,3 +34,23 @@ def execute_with_stdout(command):
     p = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     out, err = p.communicate()
     return out
+
+def names_of_items(l):
+    return map(lambda item: item.name(), l)
+
+def find_by_name(l, name):
+    for item in l:
+        if item.name() == name:
+            return item
+    return None
+
+def object_deps(obj):
+    if hasattr(obj.__class__, 'deps'):
+        return obj.__class__.deps
+    return set()
+
+def concat_lists(*args):
+    result = []
+    for l in args:
+        result.extend(l)
+    return result
