@@ -1,6 +1,6 @@
 from __future__ import absolute_import
-from dotfiles.module_base import *
+from dotfiles.package_base import *
 
-class Colors(ModuleBase):
-    def do_install(self):
-        self.symlink(self.home_file('.dircolors'), self.module_file('LS_COLORS'))
+class dircolors(PackageBase):
+    def install(self):
+        return self.action('file').symlink(self.home_file('.dircolors'), self.base_file('colors/LS_COLORS'))
