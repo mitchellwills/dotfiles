@@ -48,7 +48,6 @@ class SrcPackage(object):
                 command.extend(self.context.config.src.make_args)
             logger.call(command, cwd=self.src_dir)
 
-
 class SrcPackageActionFactory(PackageActionFactory):
     def name(self):
         return 'src'
@@ -64,3 +63,5 @@ class SrcPackageActionFactory(PackageActionFactory):
 
     def update_configure_make_install(self, package):
         return concat_lists(self.update(package), self.configure(package), self.make_install(package))
+
+

@@ -10,6 +10,7 @@ from dotfiles.config import ConfigLoader
 from dotfiles.util import *
 import dotfiles.module_base as module_base
 import dotfiles.package_base as package_base
+import dotfiles.src_package as src_package
 import dotfiles.logger as logger
 
 
@@ -45,6 +46,7 @@ def order_by_dependancies(packages):
 def load_packages(path):
     packages = []
     action_factories = []
+    package_factories = []
     files = all_files_recursive(path)
     name = os.path.basename(path)
 
@@ -64,23 +66,29 @@ def load_packages(path):
                 for name in py_mod.__dict__:
                     thing = py_mod.__dict__[name]
                     if inspect.isclass(thing):
-                        if thing.__module__ == 'dotfiles.package_base' or thing.__module__ == 'dotfiles.module_base' or thing.__module__ == 'dotfiles.actions':
+                        if thing.__module__ == 'dotfiles.package_base' or thing.__module__ == 'dotfiles.module_base' or thing.__module__ == 'dotfiles.src_package' or thing.__module__ == 'dotfiles.actions':
                             continue
                         if issubclass(thing, package_base.PackageBase):
-                            logger.success('Loading package: '+filename+':'+name, verbose=True)
-                            mod_found = True
-                            package = thing()
-                            packages.append(package)
+                            if not is_abstract(thing):
+                                logger.success('Loading package: '+filename+':'+name, verbose=True)
+                                mod_found = True
+                                package = thing()
+                                packages.append(package)
                         if issubclass(thing, package_base.PackageActionFactory):
                             logger.success('Loading package action factory: '+filename+':'+name, verbose=True)
                             mod_found = True
                             action_factory = thing()
                             action_factories.append(action_factory)
+                        if issubclass(thing, package_base.PackageFactory):
+                            logger.success('Loading package factory: '+filename+':'+name, verbose=True)
+                            mod_found = True
+                            package_factory = thing()
+                            package_factories.append(package_factory)
                 if not mod_found:
                     logger.failed('No modules found in: '+filename)
             except IOError as e:
                 logger.failed( 'Error loading module: '+str(e))
-    return (packages, action_factories)
+    return (packages, action_factories, package_factories)
 
 
 
@@ -115,48 +123,94 @@ def main(rootdir):
 
         config = config_loader.build()
 
-        if config.install_local is None:
-            config.assign('install_local', prompt_yes_no('install local'), float("inf"))
+        if config.local is None:
+            config.assign('local', prompt_yes_no('install local'), float("inf"))
 
 
     packages = []
     action_factories = []
+    package_factories = []
     with logger.frame('Loading packages'):
         for filename in os.listdir(rootdir):
             fullpath = os.path.join(rootdir, filename)
             if os.path.isdir(fullpath) and filename != BUILD_DIR_NAME and filename != BUILD_UTIL_DIR_NAME and not filename.startswith('.') and not filename == 'tools' and not filename == SRC_DIR_NAME:
                 with logger.frame('Loading '+filename):
-                    module_packages, module_action_factories = load_packages(fullpath)
+                    module_packages, module_action_factories, module_package_factories = load_packages(fullpath)
                     packages.extend(module_packages)
                     action_factories.extend(module_action_factories)
+                    package_factories.extend(module_package_factories)
 
     global_context = module_base.GlobalContext(rootdir, srcdir, config, action_factories)
-    for package in packages:
-        package.init_package(global_context)
+
+    action_factories.append(src_package.SrcPackageActionFactory())
+    action_factories.append(package_base.NetPackageActionFactory())
+    action_factories.append(package_base.ArchivePackageActionFactory())
+    action_factories.append(package_base.FilePackageActionFactory())
+
     for factory in action_factories:
         factory.init_factory(global_context)
 
-
     logger.log('loaded package action factories: ' + str(names_of_items(action_factories)))
+    logger.log('loaded package factories: ' + str(names_of_items(package_factories)))
     logger.log('loaded packages: ' + str(names_of_items(packages)))
 
-    packages_to_install = set()
-    packages_to_install.update(filter(lambda package: package.name() in config.install, packages))
-    logger.log('Installing: ' + str(names_of_items(packages_to_install)))
+    package_aliases = config.package_aliases
 
-    packages_with_deps = set(packages_to_install)
-    for package in packages_to_install:
-        dep_names = object_deps(package)
-        for dep_name in dep_names:
-            dep = find_by_name(packages, dep_name)
-            if dep is None:
-                raise Exception('Cannot resolve dep: ', dep_name)
-            packages_with_deps.add(dep)
-    logger.log('Installing deps: ' + str(names_of_items(packages_with_deps)))
+    def resolve_package_alias(name):
+        if name in package_aliases:
+            return package_aliases[name]
+        return name
 
-    package_install_stages = order_by_dependancies(packages_with_deps)
+    def find_package(name):
+        name = resolve_package_alias(name)
+        if ':' in name:
+            factory_name = name.split(':')[0]
+            arg = name.split(':')[1]
+            package_factory = find_by_name(package_factories, factory_name)
+            package = package_factory.build(arg)
+        else:
+            package = find_by_name(packages, name)
+        if package is None:
+            raise Exception('Cannot resolve package name: ', name)
+        return package
+
+    installing_packages = set()
+    installing_package_names = set()
+    unprocessed_package_names = set(config.install)
+    unprocessed_packages = set()
+    while len(unprocessed_package_names) > 0:
+        for package_name in unprocessed_package_names:
+            if package_name not in installing_package_names:
+                package = find_package(package_name)
+                unprocessed_packages.add(package)
+        installing_package_names.update(map(resolve_package_alias, unprocessed_package_names))
+        unprocessed_package_names.clear()
+        for package in unprocessed_packages:
+            package.init_package(global_context)
+            unprocessed_package_names.update(object_deps(package))
+            unprocessed_package_names.update(object_suggestions(package))
+        installing_packages.update(unprocessed_packages)
+        unprocessed_packages.clear()
+
+
+    logger.log('Installing: ' + str(installing_package_names))
+
+    package_install_state = dict()
+    package_install_stages = order_by_dependancies(installing_packages)
     for package_stage in package_install_stages:
-        for package in package_stage:
-            for step in package.install():
-                step()
+        with logger.frame('Installing: '+str(names_of_items(package_stage))):
+            for package in package_stage:
+                missing_deps = filter(lambda dep: package_install_state[dep] != 'installed', object_deps(package))
+                if len(missing_deps) is 0:
+                    with logger.frame('Installing: '+package.name()):
+                        try:
+                            for step in package.install():
+                                step()
+                            package_install_state[package.name()] = 'installed'
+                        except Exception as e:
+                            logger.failed('Error installing ' + package.name() + ': ' + str(e))
+                            package_install_state[package.name()] = 'install failed'
+                else:
+                    logger.warning('Skipped installing ' + package.name() + ', dependancies not met: ' + str(missing_deps))
+                    package_install_state[package.name()] = 'skipped'
 

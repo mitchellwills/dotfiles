@@ -2,6 +2,7 @@ import os
 import glob
 import imp
 import subprocess
+import inspect
 
 def concat_files(pathspec):
     files = glob.glob(pathspec)
@@ -48,6 +49,20 @@ def object_deps(obj):
     if hasattr(obj.__class__, 'deps'):
         return obj.__class__.deps
     return set()
+
+def object_suggestions(obj):
+    if hasattr(obj.__class__, 'suggests'):
+        return obj.__class__.suggests
+    return set()
+
+def is_abstract(obj):
+    if inspect.isclass(obj):
+        clazz = obj
+    else:
+        clazz = obj.__class__
+    if hasattr(clazz, 'abstract'):
+        return clazz.abstract
+    return False
 
 def concat_lists(*args):
     result = []

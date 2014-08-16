@@ -3,7 +3,6 @@ import os
 import re
 import inspect
 import functools
-import urllib2
 import logger
 import operator
 import StringIO
@@ -34,19 +33,18 @@ class GlobalContext(object):
     def action(self, name):
         return find_by_name(self.action_factories, name)
 
-    def symlink(self, name, target_path):
-        if os.path.lexists(name):
-            if os.path.realpath(name) == target_path:
-                logger.warning('symlink already exists ('+name+' -> '+target_path+')')
-            else:
-                with logger.trylog('backing up old file and createing symlink ('+name+' -> '+target_path+')'):
-                    os.rename(name, name+'.bak');
-                    os.symlink(target_path, name)
+    def eval_template_content(self, match):
+        template_content = match.group(1)
+        if '\n' in template_content:
+            content = StringIO.StringIO()
+            scope = {"__builtins__": __builtins__, "config": self.config, "out": content}
+            exec(template_content, scope)
+            return content.getvalue()
         else:
-            with logger.trylog('createing symlink ('+name+' -> '+target_path+')'):
-                os.symlink(target_path, name)
+            return eval(template_content, {"__builtins__": __builtins__, "config": self.config})
 
-
+    def eval_templates(self, content):
+        return re.sub('{{{{(.*?)}}}}', self.eval_template_content, content, flags=re.DOTALL)
 
 
 class ModuleContext(object):
@@ -77,19 +75,6 @@ class ModuleContext(object):
             contents = response.read()
             with open(self.build_file(name), 'w') as f:
                 f.write(contents)
-
-    def eval_template_content(self, match):
-        template_content = match.group(1)
-        if '\n' in template_content:
-            content = StringIO.StringIO()
-            scope = {"__builtins__": __builtins__, "config": self.config, "out": content}
-            exec(template_content, scope)
-            return content.getvalue()
-        else:
-            return eval(template_content, {"__builtins__": __builtins__, "config": self.config})
-
-    def eval_templates(self, content):
-        return re.sub('{{{{(.*?)}}}}', self.eval_template_content, content, flags=re.DOTALL)
 
     def eval_file_templates_to_build(self, input_file, out_name):
         with logger.trylog('evaluating templates ' + input_file + ' -> ' + out_name):

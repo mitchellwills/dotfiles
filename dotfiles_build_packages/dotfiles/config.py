@@ -41,6 +41,8 @@ class Config(object):
         self.assign(name, value, None)
     def __getitem__(self, name):
         return self.__getattr__(name)
+    def __contains__(self, name):
+        return name in self.keys()
     def keys(self):
         subkeys = map(lambda key: key.replace(self._prefix, ''), filter(lambda k: k.startswith(self._prefix), self._store))
         subkeys = set(map(lambda key: key.split('.', 1)[0], subkeys))
