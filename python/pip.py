@@ -1,32 +1,38 @@
 from __future__ import absolute_import
-from dotfiles.module_base import *
+from dotfiles.package_base import *
 from dotfiles.src_package import *
 import dotfiles.logger as logger
 
 
-class InstallPip(ModuleBase):
-    def do_config(self):
-        if self.config.sudo:
-            self.config.apt_get.add('install', ['python-pip'], 0)
-    def do_install(self):
-        if self.config.install and not self.config.sudo:
-            logger.failed('could not install pip without sudo')
 
-class PipInstall(ModuleBase):
-    @after('AptGetInstall')
-    def do_install(self):
-        if self.config.install and self.config.sudo:
-            if self.config.python.pip.install:
-                install_command = []
-                if self.config.sudo:
-                    install_command.append('sudo')
-                else:
-                    logger.failed('could not install pip packages because install without sudo not supported')
-                install_command.extend(['pip', 'install'])
-                if self.config.upgrade:
-                    install_command.append('--upgrade')
-                install_command.extend(self.config.python.pip.install)
-                logger.call(install_command)
-            else:
-                logger.warn('No pip packages to install')
+class PipActionFactory(PackageActionFactory):
+    def name(self):
+        return 'pip'
 
+    def install(self, packages):
+        if self.config.local:
+            raise Exception('cannot install pip package without sudo')
+        command = ['sudo', 'pip', 'install']
+        command.extend(packages)
+        return [CommandAction(command)]
+
+
+
+@abstract
+@depends('pip')
+class PipPackage(PackageBase):
+    def __init__(self, package):
+        self.package = package
+
+    def name(self):
+        return 'pip:'+self.package
+
+    def install(self):
+        return self.action('pip').install([self.package])
+
+class PipPackageFactory(PackageFactory):
+    def name(self):
+        return 'pip'
+
+    def build(self, name):
+        return PipPackage(name)

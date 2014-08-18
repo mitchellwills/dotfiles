@@ -19,29 +19,6 @@ SRC_DIR_NAME = 'src'
 GIT_DIR_NAME = '.git'
 BUILD_UTIL_DIR_NAME = 'dotfiles_build_packages'
 
-def order_by_dependancies(packages):
-    install_steps = []
-    remaining_packages = set(packages)
-    evaluated = set()
-    while True:
-        evaluated_on_pass = set()
-        pass_steps = []
-        for package in remaining_packages:
-            package_deps = object_deps(package)
-            if evaluated.issuperset(package_deps):
-                pass_steps.append(package)
-                evaluated_on_pass.add(package.name())
-
-        evaluated.update(evaluated_on_pass)
-        remaining_packages -= set(pass_steps)
-        install_steps.append(pass_steps)
-
-        if len(remaining_packages) == 0:
-            break
-        if len(evaluated_on_pass) == 0:
-            raise Exception('unresolvable dependancies for: ', names_of_items(remaining_packages))
-    return install_steps
-
 
 def load_packages(path):
     packages = []
@@ -162,18 +139,49 @@ def main(rootdir):
             return package_aliases[name]
         return name
 
+    def resolve_package_aliases(names):
+        return map(resolve_package_alias, names)
+
     def find_package(name):
         name = resolve_package_alias(name)
         if ':' in name:
             factory_name = name.split(':')[0]
             arg = name.split(':')[1]
             package_factory = find_by_name(package_factories, factory_name)
+            if package_factory is None:
+                raise Exception('Cannot resolve package factory name: ', factory_name)
             package = package_factory.build(arg)
         else:
             package = find_by_name(packages, name)
         if package is None:
             raise Exception('Cannot resolve package name: ', name)
         return package
+
+    def order_by_dependancies(packages):
+        install_steps = []
+        remaining_packages = set(packages)
+        evaluated = set()
+        while True:
+            evaluated_on_pass = set()
+            pass_steps = []
+            for package in remaining_packages:
+                package_deps = resolve_package_aliases(object_deps(package))
+                if evaluated.issuperset(package_deps):
+                    pass_steps.append(package)
+                    evaluated_on_pass.add(package.name())
+
+            evaluated.update(evaluated_on_pass)
+            remaining_packages -= set(pass_steps)
+            install_steps.append(pass_steps)
+
+            if len(remaining_packages) == 0:
+                break
+            if len(evaluated_on_pass) == 0:
+                raise Exception('unresolvable dependancies for: ', names_of_items(remaining_packages))
+        return install_steps
+
+
+
 
     installing_packages = set()
     installing_package_names = set()
@@ -201,7 +209,7 @@ def main(rootdir):
     for package_stage in package_install_stages:
         with logger.frame('Installing: '+str(names_of_items(package_stage))):
             for package in package_stage:
-                missing_deps = filter(lambda dep: package_install_state[dep] != 'installed', object_deps(package))
+                missing_deps = filter(lambda dep: package_install_state[dep] != 'installed', resolve_package_aliases(object_deps(package)))
                 if len(missing_deps) is 0:
                     with logger.frame('Installing: '+package.name()):
                         try:
