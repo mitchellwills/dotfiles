@@ -58,6 +58,9 @@ class FilePackageActionFactory(PackageActionFactory):
         else:
             return [CommandAction(['mv', src, dest])]
 
+    def mkdir(self, d):
+        return [CommandAction(['mkdir', '-p', d])]
+
     def symlink(self, name, target_path):
         return [SymlinkAction(name, target_path)]
 

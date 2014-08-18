@@ -80,6 +80,7 @@ class ModuleContext(object):
         with logger.trylog('evaluating templates ' + input_file + ' -> ' + out_name):
             open(self.build_file(out_name), 'w').write(self.eval_templates(open(input_file, 'r').read()))
 
+
 class ModuleBase(object):
     def __init__(self, context):
         self.context = context

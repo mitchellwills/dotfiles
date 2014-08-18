@@ -4,6 +4,11 @@ import imp
 import subprocess
 import inspect
 
+
+def read_file(filepath):
+    with open(filepath, 'r') as f:
+        return f.read()
+
 def concat_files(pathspec):
     files = glob.glob(pathspec)
 
@@ -17,7 +22,6 @@ def all_files_recursive(path):
     return [os.path.join(root, filename)
             for root, dirnames, filenames in os.walk(path)
             for filename in filenames]
-
 
 def load_py(name, path):
     return imp.load_source(name, path)
