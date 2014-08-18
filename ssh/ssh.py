@@ -1,5 +1,5 @@
 from __future__ import absolute_import
-from dotfiles.module_base import *
+from dotfiles.package_base import *
 
 class HostConfig(object):
     def __init__(self, host, user, hostname, identity):
@@ -8,7 +8,7 @@ class HostConfig(object):
         self.hostname = hostname
         self.identity = identity
 
-class SshConfig(ModuleBase):
+class ssh_config(PackageBase):
     def parse_ssh_host(self, label, data):
         if type(data) is str:
             full_match = re.match('(?:(.+?)\s*>\s*)?(?:(.+?)@)?(.+)', data)
@@ -22,7 +22,7 @@ class SshConfig(ModuleBase):
         else:
             return data
 
-    def do_build(self):
+    def build_ssh_config_file(self):
         with open(self.build_file('.ssh_config'), 'w') as f:
             for identity in self.config.ssh.identities:
                 f.write('IdentityFile '+identity+'\n\n')
@@ -38,5 +38,9 @@ class SshConfig(ModuleBase):
                         f.write('\tHostName '+host_conf.hostname+'\n')
                     f.write('\n')
 
-    def do_install(self):
-        self.symlink(self.home_file('.ssh/config'), self.build_file('.ssh_config'))
+    def install(self):
+        return concat_lists(
+            [self.build_ssh_config_file],
+            self.action('file').mkdir(self.home_file('.ssh')),
+            self.action('file').symlink(self.home_file('.ssh/config'), self.build_file('.ssh_config'))
+        )
