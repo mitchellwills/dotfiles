@@ -1,17 +1,23 @@
 from __future__ import absolute_import
 import os
-from dotfiles.module_base import *
+from dotfiles.package_base import *
 import dotfiles.logger as logger
 import glob
 
-class Emacs(ModuleBase):
-    def do_build(self):
-        self.download_build_file('move-border.el', 'https://raw.githubusercontent.com/ramnes/move-border/master/move-border.el')
-        self.concatenate_files_to_build(glob.glob(self.module_file('*.emacs')), '.emacs')
+class EmacsMoveBorder(PackageBase):
+    def name(self):
+        return 'emacs-move-border'
+    def install(self):
+        return concat_lists(
+            self.action('net').download(self.build_file('move-border.el'), 'https://raw.githubusercontent.com/ramnes/move-border/master/move-border.el'),
+            self.action('file').mkdir(self.home_file('.emacs.d')),
+            self.action('file').symlink(self.home_file('.emacs.d/move-border.el'), self.build_file('move-border.el'))
+        )
 
-    def do_install(self):
-        if not os.path.isdir(self.home_file('.emacs.d')):
-            with logger.trylog('creating .emacs.d folder'):
-                os.mkdir(self.home_file('.emacs.d'))
-        self.symlink(self.home_file('.emacs.d/move-border.el'), self.build_file('move-border.el'))
-        self.symlink(self.home_file('.emacs'), self.build_file('.emacs'))
+@depends('emacs-move-border')
+class EmacsConf(PackageBase):
+    def name(self):
+        return 'emacs-conf'
+
+    def install(self):
+        return self.action('file').symlink(self.home_file('.emacs'), self.base_file('emacs/base.emacs'))
