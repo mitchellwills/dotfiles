@@ -1,13 +1,13 @@
 from __future__ import absolute_import
 import os
-from dotfiles.module_base import ModuleBase
+from dotfiles.package_base import PackageBase
 import dotfiles.logger as logger
 
-class UiSettings(ModuleBase):
-    def do_install(self):
+class uisettings(PackageBase):
+    def install(self):
+        actions = []
         if self.config.uisettings.canonical_scroll:
-            with logger.trylog('Setting normal scroll mode'):
-                os.system('gsettings set com.canonical.desktop.interface scrollbar-mode normal')
+            actions.extend(self.action('system').command(['gsettings', 'set', 'com.canonical.desktop.interface', 'scrollbar-mode', 'normal']))
         if self.config.uisettings.nonrecursive_search:
-            with logger.trylog('Disabling recursive search'):
-                os.system('gsettings set org.gnome.nautilus.preferences enable-interactive-search true')
+            actions.extend(self.action('system').command(['gsettings', 'set', 'org.gnome.nautilus.preferences', 'enable-interactive-search', 'true']))
+        return actions

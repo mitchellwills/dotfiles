@@ -34,6 +34,13 @@ class DownloadAction(object):
                 f.write(contents)
 
 
+class SystemActionFactory(PackageActionFactory):
+    def name(self):
+        return 'system'
+
+    def command(self, command):
+        return [CommandAction(command)]
+
 class NetPackageActionFactory(PackageActionFactory):
     def name(self):
         return 'net'

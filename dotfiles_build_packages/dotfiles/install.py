@@ -143,6 +143,7 @@ def main(rootdir):
     global_context = module_base.GlobalContext(rootdir, srcdir, config, action_factories)
 
     action_factories.append(src_package.SrcPackageActionFactory())
+    action_factories.append(package_base.SystemActionFactory())
     action_factories.append(package_base.NetPackageActionFactory())
     action_factories.append(package_base.ArchivePackageActionFactory())
     action_factories.append(package_base.FilePackageActionFactory())
