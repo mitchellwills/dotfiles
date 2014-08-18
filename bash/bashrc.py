@@ -15,6 +15,12 @@ colors = {
     'cyan':'6',
     'white':'7'
 }
+color_prefixes = [
+    '',
+    'background_',
+    'bold_',
+    'underline_',
+]
 
 class bashrc(PackageBase):
     def programs(self):
@@ -78,6 +84,49 @@ class bashrc(PackageBase):
             result.write('fi\n')
         return result.getvalue()
 
+    def prompt(self):
+        def expand(text):
+            for color in colors:
+                for prefix in color_prefixes:
+                    text = text.replace('%'+prefix+color, '${bash_prompt_'+prefix+color+'}')
+            text = text.replace('%normal', '${bash_prompt_normal}')
+            return text
+
+        f = StringIO()
+        files = filter(lambda f: f.endswith('.bashprompt'), all_files_recursive(self.base_file('bash')))
+        for prompt_f in files:
+            f.write(read_file(prompt_f))
+            f.write('\n')
+
+        f.write('function prompt_command() {\n')
+        f.write('\tEXIT_STATUS=$?\n')
+        for statement in self.config.bash.prompt['eval']:
+            f.write('\t'+statement+'\n')
+        for var in self.config.bash.prompt.vars.keys():
+            value = self.config.bash.prompt.vars[var]
+            if type(value) is Config:
+                f.write('\tif [[ '+value['if']+' ]]; then\n')
+                f.write('\t\t'+var+'='+expand(value['then'])+'\n')
+                f.write('\telse\n')
+                f.write('\t\t'+var+'='+expand(value['else'])+'\n')
+                f.write('\tfi\n')
+            else:
+                f.write('\t'+var+'='+expand(value)+'\n')
+        f.write('\tPS1='+expand(self.config.bash.prompt.template)+'\n')
+
+        f.write('\t# set title bar\n')
+        f.write('\tcase "$TERM" in\n')
+        f.write('\t\txterm*|rxvt*)\n')
+        f.write('\t\t\tPS1="\\[\\e]0;\\u@\\h: \\w\\a\\]$PS1"\n')
+        f.write('\t\t\t;;\n')
+        f.write('\t\t*)\n')
+        f.write('\t\t\t;;\n')
+        f.write('\tesac\n')
+        f.write('\t\n')
+        f.write('}\n')
+        f.write('PROMPT_COMMAND=prompt_command;')
+        return f.getvalue()
+
     def build_bashrc_file(self):
         with logger.frame('Building bashrc'):
             bash_files = filter(lambda path: path.endswith('.bashrc'), all_files_recursive(self.base_file('bash')))
@@ -86,6 +135,7 @@ class bashrc(PackageBase):
                 ('05-programs', self.programs),
                 ('10-aliases', self.aliases),
                 ('51-bash-colors', self.bash_colors),
+                ('85-prompt', self.prompt),
                 ('91-path', self.path),
                 ('92-bash-completion', self.bash_completion)
             ]
