@@ -1,14 +1,21 @@
 from __future__ import absolute_import
-from dotfiles.module_base import *
+from dotfiles.package_base import *
 
-class Rossetup(ModuleBase):
-    @before('Bashrc')
-    def do_build(self):
-        if self.config.ros.install:
-            open(self.build_file('gen/95-ros.bash'), 'w').write('source ~/.rossetup\n')
-            self.eval_file_templates_to_build(self.module_file('.rossetup'), '.rossetup')
+@configures('bashrc')
+class rossetup(PackageBase):
+    def configure_bashrc(self):
+        self.config.bash.ensure('parts')
+        self.config.bash.parts.assign('95-ros', 'source ~/.rossetup\n')
 
-    def do_install(self):
-        if self.config.ros.install:
-            self.symlink(self.home_file('.rossetup'), self.build_file('.rossetup'))
+    def eval_template(self):
+        rossetup_script = self.eval_templates(read_file(self.base_file('ros/.rossetup')))
+        with open(self.build_file('.rossetup'), 'w') as f:
+            f.write(rossetup_script)
+
+    def install(self):
+        return concat_lists(
+            [self.configure_bashrc],
+            [self.eval_template],
+            self.action('file').symlink(self.home_file('.rossetup'), self.build_file('.rossetup'))
+        )
 

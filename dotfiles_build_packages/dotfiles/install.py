@@ -140,7 +140,10 @@ def main(rootdir):
         return name
 
     def resolve_package_aliases(names):
-        return map(resolve_package_alias, names)
+        result = map(resolve_package_alias, names)
+        if type(names) is set:
+            return set(result)
+        return result
 
     def find_package(name):
         name = resolve_package_alias(name)
@@ -163,10 +166,13 @@ def main(rootdir):
         evaluated = set()
         while True:
             evaluated_on_pass = set()
+            remaining_configures = set()
             pass_steps = []
             for package in remaining_packages:
+                remaining_configures |= resolve_package_aliases(object_configures(package))
+            for package in remaining_packages:
                 package_deps = resolve_package_aliases(object_deps(package))
-                if evaluated.issuperset(package_deps):
+                if evaluated.issuperset(package_deps) and package.name() not in remaining_configures:
                     pass_steps.append(package)
                     evaluated_on_pass.add(package.name())
 
@@ -213,13 +219,18 @@ def main(rootdir):
                 if len(missing_deps) is 0:
                     with logger.frame('Installing: '+package.name()):
                         try:
-                            for step in package.install():
-                                step()
+                            steps = package.install()
+                            if steps is not None:
+                                for step in steps:
+                                    step()
+                            else:
+                                logger.failed('Install configuration did not return a list of steps')
                             package_install_state[package.name()] = 'installed'
                         except Exception as e:
                             logger.failed('Error installing ' + package.name() + ': ' + str(e))
+                            import traceback
+                            traceback.print_exc()
                             package_install_state[package.name()] = 'install failed'
                 else:
                     logger.warning('Skipped installing ' + package.name() + ', dependancies not met: ' + str(missing_deps))
                     package_install_state[package.name()] = 'skipped'
-

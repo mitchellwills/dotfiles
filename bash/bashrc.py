@@ -139,7 +139,11 @@ class bashrc(PackageBase):
                 ('91-path', self.path),
                 ('92-bash-completion', self.bash_completion)
             ]
-            all_parts = sorted(raw_file_parts + dynamic_parts, key=lambda x: x[0])
+            configured_parts = []
+            self.config.bash.ensure('parts')
+            for part_name in self.config.bash.parts.keys():
+                configured_parts.append((part_name, lambda: self.config.bash.parts[part_name]))
+            all_parts = sorted(raw_file_parts + dynamic_parts + configured_parts, key=lambda x: x[0])
 
             with open(self.build_file('.bashrc'), 'w') as f:
                 for part in all_parts:

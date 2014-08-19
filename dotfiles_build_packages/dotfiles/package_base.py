@@ -24,6 +24,14 @@ def depends(spec):
         return func
     return wrap
 
+def configures(spec):
+    def wrap(func):
+        if not hasattr(func, 'configures'):
+            func.configures = set()
+        func.configures.add(spec)
+        return func
+    return wrap
+
 
 class PackageFactory(object):
     pass

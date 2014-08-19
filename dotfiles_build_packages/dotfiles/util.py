@@ -59,6 +59,11 @@ def object_suggestions(obj):
         return obj.__class__.suggests
     return set()
 
+def object_configures(obj):
+    if hasattr(obj.__class__, 'configures'):
+        return obj.__class__.configures
+    return set()
+
 def is_abstract(obj):
     if inspect.isclass(obj):
         clazz = obj
