@@ -13,6 +13,7 @@ import dotfiles.module_base as module_base
 import dotfiles.package_base as package_base
 import dotfiles.src_package as src_package
 import dotfiles.logger as logger
+from collections import defaultdict
 
 __abstract__ = True
 
@@ -20,6 +21,140 @@ BUILD_DIR_NAME = 'build'
 SRC_DIR_NAME = 'src'
 GIT_DIR_NAME = '.git'
 BUILD_UTIL_DIR_NAME = 'dotfiles_build_packages'
+
+class PackageTag(object):
+    pass
+class ConfiguredBy(PackageTag):
+    def __init__(self, name):
+        self.name = name
+    def __repr__(self):
+        return 'ConfiguredBy('+self.name+')'
+class DependedOnBy(PackageTag):
+    def __init__(self, name):
+        self.name = name
+    def __repr__(self):
+        return 'DependedOnBy('+self.name+')'
+class SuggestedBy(PackageTag):
+    def __init__(self, name):
+        self.name = name
+    def __repr__(self):
+        return 'SuggestedBy('+self.name+')'
+class PackageState:
+    UNINITIALIZED = 'uninitialized'
+    INITIALIZED = 'initialized'
+    INSTALLED = 'installed'
+    NOT_INSTALLABLE = 'not installable'
+    INSTALL_FAILED = 'install failed'
+    ALL = [UNINITIALIZED, INITIALIZED, INSTALLED, NOT_INSTALLABLE, INSTALL_FAILED]
+
+class PackageInfo(object):
+    def __init__(self, name, package, deps, suggests, configures, install_steps):
+        self.name = name
+        self.package = package
+        self.deps = deps
+        self.suggests = suggests
+        self.configures = configures
+        self.install_steps = install_steps
+        self.tags = set()
+        self.state = PackageState.UNINITIALIZED
+        self.state_message = None
+        self.state_error = None
+
+class PackageCollection(object):
+    def __init__(self, context, raw_packages, package_factories, package_aliases):
+        self.packages = dict()
+        self.context = context
+        self.raw_packages = raw_packages
+        self.package_factories = package_factories
+        self.package_aliases = package_aliases
+        self.pending_configures = defaultdict(set)
+
+    def resolve_package_alias(self, name):
+        if name in self.package_aliases:
+            return self.package_aliases[name]
+        return name
+
+    def resolve_package_aliases(self, names):
+        result = map(self.resolve_package_alias, names)
+        if type(names) is set:
+            return set(result)
+        return result
+
+    def add_package(self, name):
+        name = self.resolve_package_alias(name)
+        if name not in self.packages:
+            if ':' in name:
+                factory_name = name.split(':')[0]
+                arg = name.split(':')[1]
+                package_factory = find_by_name(self.package_factories, factory_name)
+                if package_factory is None:
+                    raise Exception('Cannot resolve package factory name: '+factory_name+' for package: '+name)
+                package = package_factory.build(arg)
+            else:
+                package = find_by_name(self.raw_packages, name)
+            if package is None:
+                raise Exception('Could not find package: '+name)
+            package.init_package(self.context)
+            try:
+                install_steps = package.install()
+            except Exception as e:
+                install_steps = None
+                install_steps_error = e
+            package_info = PackageInfo(package.name(), package, self.resolve_package_aliases(object_deps(package)), self.resolve_package_aliases(object_suggestions(package)), self.resolve_package_aliases(object_configures(package)), install_steps)
+            for package_name in self.resolve_package_aliases(self.pending_configures[package_info.name]):
+                package_info.tags.add(ConfiguredBy(package_name))
+            if install_steps is None:
+                package_info.state = PackageState.NOT_INSTALLABLE
+                package_info.state_error = install_steps_error
+            else:
+                package_info.state = PackageState.INITIALIZED
+            self.packages[package_info.name] = package_info
+            print 'Added: '+package_info.name+' - '+str(package_info.tags)
+
+            for package_name in package_info.deps:
+                self.add_package(package_name)
+                self.packages[package_name].tags.add(DependedOnBy(package_info.name))
+            for package_name in package_info.suggests:
+                self.add_package(package_name)
+                self.packages[package_name].tags.add(SuggestedBy(package_info.name))
+            for package_name in package_info.configures:
+                if package_name in self.packages:
+                    self.packages[package_name].tags.add(ConfiguredBy(package_info.name))
+                else:
+                    self.pending_configures[package_name].add(package_info.name)
+
+    def get_installable_packages(self):
+        installable_packages = set()
+        for package_name, package_info in self.packages.iteritems():
+            if package_info.state == PackageState.INITIALIZED:
+                deps_satisfied = True
+                for dep_name in package_info.deps:
+                    if self.packages[dep_name].state != PackageState.INSTALLED:
+                        deps_satisfied = False
+                configured_satisfied = True
+                configured_by_tags = filter(lambda x: type(x) is ConfiguredBy, package_info.tags)
+                for configure_name in map(lambda x: x.name, configured_by_tags):
+                    if self.packages[dep_name].state != PackageState.INSTALLED and self.packages[dep_name].state != PackageState.NOT_INSTALLABLE:
+                        configured_satisfied = False
+                if deps_satisfied and configured_satisfied:
+                    installable_packages.add(package_info)
+        return installable_packages
+
+    def propagate_package_state(self):
+        action_taken = True
+        while action_taken:
+            action_taken = False
+            for package_name, package_info in self.packages.iteritems():
+                if package_info.state == PackageState.INITIALIZED:
+                    for dep_name in package_info.deps:
+                        if self.packages[dep_name].state == PackageState.NOT_INSTALLABLE:
+                            package_info.state = PackageState.NOT_INSTALLABLE
+                            package_info.state_message = 'Dep \''+dep_name+'\' is not installable'
+                            action_taken = True
+                        if self.packages[dep_name].state == PackageState.INSTALL_FAILED:
+                            package_info.state = PackageState.NOT_INSTALLABLE
+                            package_info.state_message = 'Dep \''+dep_name+'\' failed to install'
+                            action_taken = True
 
 
 def load_packages(path):
@@ -110,7 +245,7 @@ def main(rootdir):
             config.assign('local', prompt_yes_no('install local'), float("inf"))
 
 
-    packages = []
+    raw_packages = []
     action_factories = []
     package_factories = []
     with logger.frame('Loading packages'):
@@ -119,7 +254,7 @@ def main(rootdir):
             if os.path.isdir(fullpath) and not filename.startswith('.') and not filename == SRC_DIR_NAME and not filename == BUILD_DIR_NAME:
                 with logger.frame('Loading '+filename):
                     module_packages, module_action_factories, module_package_factories = load_packages(fullpath)
-                    packages.extend(module_packages)
+                    raw_packages.extend(module_packages)
                     action_factories.extend(module_action_factories)
                     package_factories.extend(module_package_factories)
 
@@ -130,7 +265,7 @@ def main(rootdir):
 
     logger.log('loaded package action factories: ' + str(names_of_items(action_factories)))
     logger.log('loaded package factories: ' + str(names_of_items(package_factories)))
-    logger.log('loaded packages: ' + str(names_of_items(packages)))
+    logger.log('loaded raw packages: ' + str(names_of_items(raw_packages)))
 
     package_aliases = config.package_aliases
 
@@ -144,99 +279,31 @@ def main(rootdir):
     logger.log('Modified PATH: '+path)
 
 
-    def resolve_package_alias(name):
-        if name in package_aliases:
-            return package_aliases[name]
-        return name
-
-    def resolve_package_aliases(names):
-        result = map(resolve_package_alias, names)
-        if type(names) is set:
-            return set(result)
-        return result
-
-    def find_package(name):
-        name = resolve_package_alias(name)
-        if ':' in name:
-            factory_name = name.split(':')[0]
-            arg = name.split(':')[1]
-            package_factory = find_by_name(package_factories, factory_name)
-            if package_factory is None:
-                raise Exception('Cannot resolve package factory name: ', factory_name)
-            package = package_factory.build(arg)
-        else:
-            package = find_by_name(packages, name)
-        if package is None:
-            raise Exception('Cannot resolve package name: ', name)
-        return package
-
-    def order_by_dependancies(packages):
-        install_steps = []
-        remaining_packages = set(packages)
-        evaluated = set()
-        while True:
-            evaluated_on_pass = set()
-            remaining_configures = set()
-            pass_steps = []
-            for package in remaining_packages:
-                remaining_configures |= resolve_package_aliases(object_configures(package))
-            for package in remaining_packages:
-                package_deps = resolve_package_aliases(object_deps(package))
-                if evaluated.issuperset(package_deps) and package.name() not in remaining_configures:
-                    pass_steps.append(package)
-                    evaluated_on_pass.add(package.name())
-
-            evaluated.update(evaluated_on_pass)
-            remaining_packages -= set(pass_steps)
-            install_steps.append(pass_steps)
-
-            if len(remaining_packages) == 0:
-                break
-            if len(evaluated_on_pass) == 0:
-                raise Exception('unresolvable dependancies for: ', names_of_items(remaining_packages))
-        return install_steps
+    packages = PackageCollection(global_context, raw_packages, package_factories, package_aliases)
+    for package_name in config.install:
+        packages.add_package(package_name)
 
 
-    installing_packages = set()
-    installing_package_names = set()
-    unprocessed_package_names = set(config.install)
-    unprocessed_packages = set()
-    while len(unprocessed_package_names) > 0:
-        for package_name in unprocessed_package_names:
-            if package_name not in installing_package_names:
-                package = find_package(package_name)
-                unprocessed_packages.add(package)
-        installing_package_names.update(map(resolve_package_alias, unprocessed_package_names))
-        unprocessed_package_names.clear()
-        for package in unprocessed_packages:
-            package.init_package(global_context)
-            unprocessed_package_names.update(object_deps(package))
-            unprocessed_package_names.update(object_suggestions(package))
-        installing_packages.update(unprocessed_packages)
-        unprocessed_packages.clear()
+    for installable_packages in iter(packages.get_installable_packages, set()):
+        with logger.frame('Installing: '+str(names_of_items(installable_packages))):
+            for package_info in installable_packages:
+                with logger.frame('Installing: '+package_info.name):
+                    try:
+                        for step in package_info.install_steps:
+                            step()
+                        package_info.state = PackageState.INSTALLED
+                    except Exception as e:
+                        package_info.state = PackageState.INSTALL_FAILED
+                        package_info.state_error = e
+            packages.propagate_package_state()
 
-
-    logger.log('Installing: ' + str(installing_package_names))
-
-    package_install_state = dict()
-    package_install_stages = order_by_dependancies(installing_packages)
-    for package_stage in package_install_stages:
-        with logger.frame('Installing: '+str(names_of_items(package_stage))):
-            for package in package_stage:
-                missing_deps = filter(lambda dep: package_install_state[dep] != 'installed', resolve_package_aliases(object_deps(package)))
-                if len(missing_deps) is 0:
-                    with logger.frame('Installing: '+package.name()):
-                        try:
-                            steps = package.install()
-                            if steps is not None:
-                                for step in steps:
-                                    step()
-                            else:
-                                logger.failed('Install configuration did not return a list of steps')
-                            package_install_state[package.name()] = 'installed'
-                        except Exception as e:
-                            logger.failed('Error installing ' + package.name() + ': ' + str(e))
-                            package_install_state[package.name()] = 'install failed'
-                else:
-                    logger.warning('Skipped installing ' + package.name() + ', dependancies not met: ' + str(missing_deps))
-                    package_install_state[package.name()] = 'skipped'
+    for state in PackageState.ALL:
+        state_items = filter(lambda x: x[1].state == state, packages.packages.iteritems())
+        if len(state_items) > 0:
+            with logger.frame(state):
+                for package_name, package_info in state_items:
+                    with logger.frame(package_info.name):
+                        if package_info.state_message is not None:
+                            logger.log(package_info.state_message)
+                        if package_info.state_error is not None:
+                            logger.log(str(package_info.state_error))

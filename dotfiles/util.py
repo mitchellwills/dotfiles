@@ -84,7 +84,13 @@ def execute_with_stdout(command):
     return out
 
 def names_of_items(l):
-    return map(lambda item: item.name(), l)
+    names = []
+    for item in l:
+        if hasattr(item.name, '__call__'):
+            names.append(item.name())
+        else:
+            names.append(item.name)
+    return names
 
 def find_by_name(l, name):
     for item in l:
