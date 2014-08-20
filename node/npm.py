@@ -14,11 +14,10 @@ class NpmActionFactory(PackageActionFactory):
     def install(self, packages):
         commands = []
         for package in packages:
-            commands.append(CommandAction(['npm', 'install', '-g', package]))
+            commands.append(CommandAction(['npm', 'install', '-g', package], deps=['npm']))
         return commands
 
 @abstract
-@depends('npm')
 class NpmPackage(PackageBase):
     def __init__(self, package):
         self.package = package

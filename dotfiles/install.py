@@ -57,16 +57,33 @@ class PackageInfo(RelationalDatabaseNode):
         return self.key
 
 class PackageCollection(object):
-    def __init__(self, context, raw_packages, package_factories, package_aliases):
+    def __init__(self, context, raw_packages, package_factories):
         self.packages = RelationalDatabase()
         self.context = context
         self.raw_packages = raw_packages
         self.package_factories = package_factories
-        self.package_aliases = package_aliases
+
+        for package_name in self.context.config.packages.keys():
+            package_config = self.context.config.packages[package_name]
+            package_name = self.resolve_package_alias(package_name)
+            package_info = self.ensure_package(package_name)
+            if 'deps' in package_config:
+                for dep_name in self.resolve_package_aliases(package_config.deps):
+                    self.add_package(dep_name)
+                    package_info.add_relationship(PackageRelationship.DEPENDS_ON, dep_name)
+            if 'suggests' in package_config:
+                for suggest_name in self.resolve_package_aliases(package_config.suggests):
+                    self.add_package(suggest_name)
+                    package_info.add_relationship(PackageRelationship.SUGGESTS, suggest_name)
+            if 'configures' in package_config:
+                for configures_name in self.resolve_package_aliases(package_config.configures):
+                    self.ensure_package(configures_name)
+                    package_info.add_relationship(PackageRelationship.CONFIGURES, configures_name)
+
 
     def resolve_package_alias(self, name):
-        if name in self.package_aliases:
-            return self.package_aliases[name]
+        if name in self.context.config.package_aliases:
+            return self.context.config.package_aliases[name]
         return name
 
     def resolve_package_aliases(self, names):
@@ -82,7 +99,7 @@ class PackageCollection(object):
 
     def add_package(self, name):
         name = self.resolve_package_alias(name)
-        if name not in self.packages:
+        if name not in self.packages or self.packages[name].state == PackageState.UNINITIALIZED:
             if ':' in name:
                 factory_name = name.split(':')[0]
                 arg = name.split(':')[1]
@@ -282,7 +299,7 @@ def main(rootdir):
     logger.log('Modified PATH: '+path)
 
 
-    packages = PackageCollection(global_context, raw_packages, package_factories, package_aliases)
+    packages = PackageCollection(global_context, raw_packages, package_factories)
     for package_name in config.install:
         packages.add_package(package_name)
 
