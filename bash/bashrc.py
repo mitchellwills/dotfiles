@@ -65,7 +65,7 @@ class bashrc(PackageBase):
             if len(paths) > 0:
                 new_path = ''
                 for path_entry in paths:
-                    new_path = new_path + path_entry+':'
+                    new_path = new_path + self.eval_templates(path_entry)+':'
                 new_path = new_path + '$'+path_var
                 result.write('export '+path_var+'='+new_path+'\n')
         write_path_bash(self.config.bash.path, 'PATH')

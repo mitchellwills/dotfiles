@@ -134,6 +134,16 @@ def main(rootdir):
 
     package_aliases = config.package_aliases
 
+    # setup path for sub processes
+    current_path = os.environ['PATH']
+    path = ''
+    if len(current_path) > 0:
+        path = ':'+current_path
+    path = ':'.join([os.path.expanduser(global_context.eval_templates(element)) for element in config.bash.path]) + path
+    os.environ['PATH'] = path
+    logger.log('Modified PATH: '+path)
+
+
     def resolve_package_alias(name):
         if name in package_aliases:
             return package_aliases[name]
@@ -187,8 +197,6 @@ def main(rootdir):
         return install_steps
 
 
-
-
     installing_packages = set()
     installing_package_names = set()
     unprocessed_package_names = set(config.install)
@@ -228,8 +236,6 @@ def main(rootdir):
                             package_install_state[package.name()] = 'installed'
                         except Exception as e:
                             logger.failed('Error installing ' + package.name() + ': ' + str(e))
-                            import traceback
-                            traceback.print_exc()
                             package_install_state[package.name()] = 'install failed'
                 else:
                     logger.warning('Skipped installing ' + package.name() + ', dependancies not met: ' + str(missing_deps))
