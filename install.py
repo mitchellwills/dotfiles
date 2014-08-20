@@ -13,10 +13,9 @@ if version[0] <= 2 and version[1] < 7:
     subprocess.call(new_args)
 
 else:
-    BUILD_UTIL_DIR_NAME = 'dotfiles_build_packages'
     rootdir = os.path.dirname(os.path.realpath(__file__))
-    buildutildir = os.path.join(rootdir, BUILD_UTIL_DIR_NAME)
-    sys.path.append(buildutildir)
+    if rootdir not in sys.path:
+        sys.path.append(rootdir)
 
     import dotfiles.install
 

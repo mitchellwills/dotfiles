@@ -8,6 +8,7 @@ import inspect
 import importlib
 import dotfiles.logger as logger
 
+__abstract__ = True
 
 def suggests(spec):
     def wrap(func):
@@ -18,7 +19,7 @@ def suggests(spec):
     return wrap
 
 def abstract(func):
-    func.abstract = True
+    func.__abstract__ = True
     return func
 
 def depends(spec):
@@ -107,12 +108,10 @@ def object_configures(obj):
     return set()
 
 def is_abstract(obj):
-    if inspect.isclass(obj):
-        clazz = obj
-    else:
-        clazz = obj.__class__
-    if 'abstract' in clazz.__dict__:
-        return clazz.abstract
+    if not (inspect.isclass(obj) or inspect.ismodule(obj)):
+        obj = obj.__class__
+    if '__abstract__' in obj.__dict__:
+        return obj.__abstract__
     return False
 
 def concat_lists(*args):

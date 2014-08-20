@@ -9,6 +9,7 @@ import StringIO
 from dotfiles.util import *
 import dotfiles.logger as logger
 
+__abstract__ = True
 
 BUILD_DIR_NAME = 'build'
 SRC_DIR_NAME = 'src'

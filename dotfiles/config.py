@@ -4,6 +4,8 @@ import re
 import dotfiles.logger as logger
 from dotfiles.util import *
 
+__abstract__ = True
+
 def parse_value(val):
     if type(val) is not str:
         return val

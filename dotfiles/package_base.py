@@ -4,7 +4,7 @@ from dotfiles.src_package import *
 from dotfiles.module_base import *
 import dotfiles.logger as logger
 
-
+__abstract__ = True
 
 @abstract
 class PackageFactory(object):

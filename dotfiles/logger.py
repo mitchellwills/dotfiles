@@ -1,6 +1,8 @@
 from __future__ import absolute_import
 import subprocess
 
+__abstract__ = True
+
 bash_normal = '\033[0m'
 bash_red = '\033[0;31m'
 bash_green = '\033[0;32m'

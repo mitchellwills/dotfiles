@@ -14,6 +14,7 @@ import dotfiles.package_base as package_base
 import dotfiles.src_package as src_package
 import dotfiles.logger as logger
 
+__abstract__ = True
 
 BUILD_DIR_NAME = 'build'
 SRC_DIR_NAME = 'src'
@@ -66,7 +67,7 @@ def load_packages(path):
                                 package_factories.append(package_factory)
                             else:
                                 logger.warning('Did not load class: ' + str(thing) + ': ' + str(thing.__bases__), verbose=True)
-                if not mod_found:
+                if not mod_found and not is_abstract(py_mod):
                     logger.failed('No modules found in: '+filename)
             except IOError as e:
                 logger.failed( 'Error loading module: '+str(e))
@@ -123,12 +124,6 @@ def main(rootdir):
                     package_factories.extend(module_package_factories)
 
     global_context = module_base.GlobalContext(rootdir, srcdir, config, action_factories)
-
-    """action_factories.append(src_package.SrcPackageActionFactory())
-    action_factories.append(package_base.SystemActionFactory())
-    action_factories.append(package_base.NetPackageActionFactory())
-    action_factories.append(package_base.ArchivePackageActionFactory())
-    action_factories.append(package_base.FilePackageActionFactory())"""
 
     for factory in action_factories:
         factory.init_factory(global_context)
