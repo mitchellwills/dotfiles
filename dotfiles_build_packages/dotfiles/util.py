@@ -1,8 +1,41 @@
+from __future__ import absolute_import
 import os
+import sys
 import glob
 import imp
 import subprocess
 import inspect
+import importlib
+import dotfiles.logger as logger
+
+
+def suggests(spec):
+    def wrap(func):
+        if not hasattr(func, 'suggests'):
+            func.suggests = set()
+        func.suggests.add(spec)
+        return func
+    return wrap
+
+def abstract(func):
+    func.abstract = True
+    return func
+
+def depends(spec):
+    def wrap(func):
+        if not hasattr(func, 'deps'):
+            func.deps = set()
+        func.deps.add(spec)
+        return func
+    return wrap
+
+def configures(spec):
+    def wrap(func):
+        if not hasattr(func, 'configures'):
+            func.configures = set()
+        func.configures.add(spec)
+        return func
+    return wrap
 
 
 def read_file(filepath):
@@ -24,6 +57,15 @@ def all_files_recursive(path):
             for filename in filenames]
 
 def load_py(name, path):
+    for path_entry in sys.path:
+        if path.startswith(path_entry):
+            module_name = os.path.relpath(path, path_entry).replace('.py', '').replace('/', '.')
+            try:
+                module = importlib.import_module(module_name)
+                logger.log('Loaded module from path: '+module_name, verbose=True)
+                return module
+            except ImportError:
+                pass # not in module
     return imp.load_source(name, path)
 
 
@@ -69,7 +111,7 @@ def is_abstract(obj):
         clazz = obj
     else:
         clazz = obj.__class__
-    if hasattr(clazz, 'abstract'):
+    if 'abstract' in clazz.__dict__:
         return clazz.abstract
     return False
 

@@ -1,4 +1,5 @@
-import logger
+from __future__ import absolute_import
+import dotfiles.logger as logger
 import os
 from dotfiles.actions import *
 from dotfiles.util import *

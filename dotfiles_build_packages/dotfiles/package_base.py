@@ -1,41 +1,16 @@
+from __future__ import absolute_import
 from dotfiles.util import *
 from dotfiles.src_package import *
 from dotfiles.module_base import *
-import logger
+import dotfiles.logger as logger
 
 
-def suggests(spec):
-    def wrap(func):
-        if not hasattr(func, 'suggests'):
-            func.suggests = set()
-        func.suggests.add(spec)
-        return func
-    return wrap
 
-def abstract(func):
-    func.abstract = True
-    return func
-
-def depends(spec):
-    def wrap(func):
-        if not hasattr(func, 'deps'):
-            func.deps = set()
-        func.deps.add(spec)
-        return func
-    return wrap
-
-def configures(spec):
-    def wrap(func):
-        if not hasattr(func, 'configures'):
-            func.configures = set()
-        func.configures.add(spec)
-        return func
-    return wrap
-
-
+@abstract
 class PackageFactory(object):
     pass
 
+@abstract
 class PackageBase(object):
     def __init__(self):
         self.context = None
@@ -62,6 +37,7 @@ class PackageBase(object):
         logger.failed('No install for '+self.name())
         return None
 
+@abstract
 class SrcConfigureMakeInstallPackage(PackageBase):
     def __init__(self, pkg_name, repo):
         PackageBase.__init__(self)

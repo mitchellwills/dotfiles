@@ -1,3 +1,4 @@
+from __future__ import absolute_import
 import subprocess
 
 bash_normal = '\033[0m'

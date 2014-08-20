@@ -1,12 +1,14 @@
+from __future__ import absolute_import
 from __future__ import print_function
 import os
 import re
 import inspect
 import functools
-import logger
 import operator
 import StringIO
 from dotfiles.util import *
+import dotfiles.logger as logger
+
 
 BUILD_DIR_NAME = 'build'
 SRC_DIR_NAME = 'src'
@@ -31,7 +33,10 @@ class GlobalContext(object):
         return os.path.expanduser(os.path.join('~/', name))
 
     def action(self, name):
-        return find_by_name(self.action_factories, name)
+        result = find_by_name(self.action_factories, name)
+        if result is None:
+            raise Exception('Could not find action factory: '+name)
+        return result
 
     def eval_template_content(self, match):
         template_content = match.group(1)

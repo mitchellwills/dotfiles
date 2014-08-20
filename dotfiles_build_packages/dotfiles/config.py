@@ -1,7 +1,8 @@
+from __future__ import absolute_import
 import os
 import re
-import logger
-from util import *
+import dotfiles.logger as logger
+from dotfiles.util import *
 
 def parse_value(val):
     if type(val) is not str:

@@ -1,4 +1,5 @@
 #!/usr/bin/python
+from __future__ import absolute_import
 import os
 import shutil
 import sys
@@ -36,6 +37,8 @@ def load_packages(path):
         if not os.path.isfile(filepath):
             continue
 
+        if filename.endswith('__init__.py'):
+            continue
         if filename.endswith('.py'):
             try:
                 py_mod = load_py(name+'.'+filename.replace('.py', ''), filepath)
@@ -43,24 +46,26 @@ def load_packages(path):
                 for name in py_mod.__dict__:
                     thing = py_mod.__dict__[name]
                     if inspect.isclass(thing):
-                        if thing.__module__ == 'dotfiles.package_base' or thing.__module__ == 'dotfiles.module_base' or thing.__module__ == 'dotfiles.src_package' or thing.__module__ == 'dotfiles.actions':
+                        if thing.__module__ != py_mod.__name__:
                             continue
-                        if issubclass(thing, package_base.PackageBase):
-                            if not is_abstract(thing):
+                        if not is_abstract(thing):
+                            if issubclass(thing, package_base.PackageBase):
                                 logger.success('Loading package: '+filename+':'+name, verbose=True)
                                 mod_found = True
                                 package = thing()
                                 packages.append(package)
-                        if issubclass(thing, package_base.PackageActionFactory):
-                            logger.success('Loading package action factory: '+filename+':'+name, verbose=True)
-                            mod_found = True
-                            action_factory = thing()
-                            action_factories.append(action_factory)
-                        if issubclass(thing, package_base.PackageFactory):
-                            logger.success('Loading package factory: '+filename+':'+name, verbose=True)
-                            mod_found = True
-                            package_factory = thing()
-                            package_factories.append(package_factory)
+                            elif issubclass(thing, package_base.PackageActionFactory):
+                                logger.success('Loading package action factory: '+filename+':'+name, verbose=True)
+                                mod_found = True
+                                action_factory = thing()
+                                action_factories.append(action_factory)
+                            elif issubclass(thing, package_base.PackageFactory):
+                                logger.success('Loading package factory: '+filename+':'+name, verbose=True)
+                                mod_found = True
+                                package_factory = thing()
+                                package_factories.append(package_factory)
+                            else:
+                                logger.warning('Did not load class: ' + str(thing) + ': ' + str(thing.__bases__), verbose=True)
                 if not mod_found:
                     logger.failed('No modules found in: '+filename)
             except IOError as e:
@@ -110,7 +115,7 @@ def main(rootdir):
     with logger.frame('Loading packages'):
         for filename in os.listdir(rootdir):
             fullpath = os.path.join(rootdir, filename)
-            if os.path.isdir(fullpath) and filename != BUILD_DIR_NAME and filename != BUILD_UTIL_DIR_NAME and not filename.startswith('.') and not filename == 'tools' and not filename == SRC_DIR_NAME:
+            if os.path.isdir(fullpath) and not filename.startswith('.') and not filename == SRC_DIR_NAME and not filename == BUILD_DIR_NAME:
                 with logger.frame('Loading '+filename):
                     module_packages, module_action_factories, module_package_factories = load_packages(fullpath)
                     packages.extend(module_packages)
@@ -119,11 +124,11 @@ def main(rootdir):
 
     global_context = module_base.GlobalContext(rootdir, srcdir, config, action_factories)
 
-    action_factories.append(src_package.SrcPackageActionFactory())
+    """action_factories.append(src_package.SrcPackageActionFactory())
     action_factories.append(package_base.SystemActionFactory())
     action_factories.append(package_base.NetPackageActionFactory())
     action_factories.append(package_base.ArchivePackageActionFactory())
-    action_factories.append(package_base.FilePackageActionFactory())
+    action_factories.append(package_base.FilePackageActionFactory())"""
 
     for factory in action_factories:
         factory.init_factory(global_context)

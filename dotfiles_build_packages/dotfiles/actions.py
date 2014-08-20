@@ -1,7 +1,10 @@
+from __future__ import absolute_import
 import os
-import logger
+import dotfiles.logger as logger
 import urllib2
+from dotfiles.package_base import *
 
+@abstract
 class PackageActionFactory(object):
     def __init__(self):
         self.context = None
