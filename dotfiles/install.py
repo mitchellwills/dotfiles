@@ -14,6 +14,7 @@ import dotfiles.package_base as package_base
 import dotfiles.src_package as src_package
 import dotfiles.logger as logger
 from collections import defaultdict
+from spgl.relational_database import *
 
 __abstract__ = True
 
@@ -22,23 +23,19 @@ SRC_DIR_NAME = 'src'
 GIT_DIR_NAME = '.git'
 BUILD_UTIL_DIR_NAME = 'dotfiles_build_packages'
 
-class PackageTag(object):
-    pass
-class ConfiguredBy(PackageTag):
-    def __init__(self, name):
-        self.name = name
-    def __repr__(self):
-        return 'ConfiguredBy('+self.name+')'
-class DependedOnBy(PackageTag):
-    def __init__(self, name):
-        self.name = name
-    def __repr__(self):
-        return 'DependedOnBy('+self.name+')'
-class SuggestedBy(PackageTag):
-    def __init__(self, name):
-        self.name = name
-    def __repr__(self):
-        return 'SuggestedBy('+self.name+')'
+class PackageRelationship(object):
+    CONFIGURED_BY = Relationship('configured by')
+    CONFIGURES = Relationship('configures')
+    make_inverse_relationships(CONFIGURED_BY, CONFIGURES)
+
+    DEPENDED_ON_BY = Relationship('depended on by')
+    DEPENDS_ON = Relationship('depends on')
+    make_inverse_relationships(DEPENDED_ON_BY, DEPENDS_ON)
+
+    SUGGESTED_BY = Relationship('suggested by')
+    SUGGESTS = Relationship('suggests')
+    make_inverse_relationships(SUGGESTED_BY, SUGGESTS)
+
 class PackageState:
     UNINITIALIZED = 'uninitialized'
     INITIALIZED = 'initialized'
@@ -47,27 +44,25 @@ class PackageState:
     INSTALL_FAILED = 'install failed'
     ALL = [UNINITIALIZED, INITIALIZED, INSTALLED, NOT_INSTALLABLE, INSTALL_FAILED]
 
-class PackageInfo(object):
-    def __init__(self, name, package, deps, suggests, configures, install_steps):
-        self.name = name
-        self.package = package
-        self.deps = deps
-        self.suggests = suggests
-        self.configures = configures
-        self.install_steps = install_steps
-        self.tags = set()
+class PackageInfo(RelationalDatabaseNode):
+    def __init__(self, name):
+        super(PackageInfo, self).__init__(name)
+        self.install_steps = None
         self.state = PackageState.UNINITIALIZED
         self.state_message = None
         self.state_error = None
 
+    @property
+    def name(self):
+        return self.key
+
 class PackageCollection(object):
     def __init__(self, context, raw_packages, package_factories, package_aliases):
-        self.packages = dict()
+        self.packages = RelationalDatabase()
         self.context = context
         self.raw_packages = raw_packages
         self.package_factories = package_factories
         self.package_aliases = package_aliases
-        self.pending_configures = defaultdict(set)
 
     def resolve_package_alias(self, name):
         if name in self.package_aliases:
@@ -79,6 +74,11 @@ class PackageCollection(object):
         if type(names) is set:
             return set(result)
         return result
+
+    def ensure_package(self, name):
+        if name not in self.packages:
+            self.packages.add_node(PackageInfo(name))
+        return self.packages[name]
 
     def add_package(self, name):
         name = self.resolve_package_alias(name)
@@ -100,41 +100,43 @@ class PackageCollection(object):
             except Exception as e:
                 install_steps = None
                 install_steps_error = e
-            package_info = PackageInfo(package.name(), package, self.resolve_package_aliases(object_deps(package)), self.resolve_package_aliases(object_suggestions(package)), self.resolve_package_aliases(object_configures(package)), install_steps)
-            for package_name in self.resolve_package_aliases(self.pending_configures[package_info.name]):
-                package_info.tags.add(ConfiguredBy(package_name))
+
+            package_info = self.ensure_package(package.name())
+            package_info.install_steps = install_steps
+            if install_steps is not None:
+                for step in install_steps:
+                    for dep_name in self.resolve_package_aliases(object_deps(step)):
+                        self.add_package(dep_name)
+                        package_info.add_relationship(PackageRelationship.DEPENDS_ON, dep_name)
+            for dep_name in self.resolve_package_aliases(object_deps(package)):
+                self.add_package(dep_name)
+                package_info.add_relationship(PackageRelationship.DEPENDS_ON, dep_name)
+            for suggest_name in self.resolve_package_aliases(object_suggestions(package)):
+                self.add_package(suggest_name)
+                package_info.add_relationship(PackageRelationship.SUGGESTS, suggest_name)
+            for configures_name in self.resolve_package_aliases(object_configures(package)):
+                self.ensure_package(configures_name)
+                package_info.add_relationship(PackageRelationship.CONFIGURES, configures_name)
+
             if install_steps is None:
                 package_info.state = PackageState.NOT_INSTALLABLE
                 package_info.state_error = install_steps_error
             else:
                 package_info.state = PackageState.INITIALIZED
-            self.packages[package_info.name] = package_info
-            print 'Added: '+package_info.name+' - '+str(package_info.tags)
 
-            for package_name in package_info.deps:
-                self.add_package(package_name)
-                self.packages[package_name].tags.add(DependedOnBy(package_info.name))
-            for package_name in package_info.suggests:
-                self.add_package(package_name)
-                self.packages[package_name].tags.add(SuggestedBy(package_info.name))
-            for package_name in package_info.configures:
-                if package_name in self.packages:
-                    self.packages[package_name].tags.add(ConfiguredBy(package_info.name))
-                else:
-                    self.pending_configures[package_name].add(package_info.name)
 
     def get_installable_packages(self):
         installable_packages = set()
-        for package_name, package_info in self.packages.iteritems():
+        for package_name in self.packages.keys():
+            package_info = self.packages[package_name]
             if package_info.state == PackageState.INITIALIZED:
                 deps_satisfied = True
-                for dep_name in package_info.deps:
-                    if self.packages[dep_name].state != PackageState.INSTALLED:
+                for dep in package_info.get_related(PackageRelationship.DEPENDS_ON):
+                    if dep.state != PackageState.INSTALLED:
                         deps_satisfied = False
                 configured_satisfied = True
-                configured_by_tags = filter(lambda x: type(x) is ConfiguredBy, package_info.tags)
-                for configure_name in map(lambda x: x.name, configured_by_tags):
-                    if self.packages[dep_name].state != PackageState.INSTALLED and self.packages[dep_name].state != PackageState.NOT_INSTALLABLE:
+                for dep in package_info.get_related(PackageRelationship.CONFIGURED_BY):
+                    if dep.state != PackageState.INSTALLED and dep.state != PackageState.NOT_INSTALLABLE:
                         configured_satisfied = False
                 if deps_satisfied and configured_satisfied:
                     installable_packages.add(package_info)
@@ -144,16 +146,17 @@ class PackageCollection(object):
         action_taken = True
         while action_taken:
             action_taken = False
-            for package_name, package_info in self.packages.iteritems():
+            for package_name in self.packages.keys():
+                package_info = self.packages[package_name]
                 if package_info.state == PackageState.INITIALIZED:
-                    for dep_name in package_info.deps:
-                        if self.packages[dep_name].state == PackageState.NOT_INSTALLABLE:
+                    for dep in package_info.get_related(PackageRelationship.DEPENDS_ON):
+                        if dep.state == PackageState.NOT_INSTALLABLE:
                             package_info.state = PackageState.NOT_INSTALLABLE
-                            package_info.state_message = 'Dep \''+dep_name+'\' is not installable'
+                            package_info.state_message = 'Dep \''+dep.name+'\' is not installable'
                             action_taken = True
-                        if self.packages[dep_name].state == PackageState.INSTALL_FAILED:
+                        if dep.state == PackageState.INSTALL_FAILED:
                             package_info.state = PackageState.NOT_INSTALLABLE
-                            package_info.state_message = 'Dep \''+dep_name+'\' failed to install'
+                            package_info.state_message = 'Dep \''+dep.name+'\' failed to install'
                             action_taken = True
 
 
@@ -298,10 +301,10 @@ def main(rootdir):
             packages.propagate_package_state()
 
     for state in PackageState.ALL:
-        state_items = filter(lambda x: x[1].state == state, packages.packages.iteritems())
+        state_items = filter(lambda node: node.state == state, packages.packages.nodes())
         if len(state_items) > 0:
             with logger.frame(state):
-                for package_name, package_info in state_items:
+                for package_info in state_items:
                     with logger.frame(package_info.name):
                         if package_info.state_message is not None:
                             logger.log(package_info.state_message)

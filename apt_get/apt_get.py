@@ -18,29 +18,20 @@ class AptGetActionFactory(PackageActionFactory):
         return 'apt-get'
 
     def install(self, packages):
-        if self.config.local:
-            raise Exception('cannot install apt-get package without sudo')
         command = ['sudo', 'apt-get', 'install', '-y']
         command.extend(packages)
-        return [CommandAction(command)]
+        return [CommandAction(command, deps=['apt-get'])]
 
     def add_repo(self, repo):
-        if self.config.local:
-            raise Exception('cannot install add-apt-repository for local only installs')
-        return [CommandAction(['sudo', 'add-apt-repository', '-y', repo])]
+        return [CommandAction(['sudo', 'add-apt-repository', '-y', repo], deps=['apt-get'])]
 
     def update(self):
-        if self.config.local:
-            raise Exception('cannot install apt-get update for local only installs')
-        return [CommandAction(['sudo', 'apt-get', 'update'])]
+        return [CommandAction(['sudo', 'apt-get', 'update'], deps=['apt-get'])]
 
     def upgrade(self):
-        if self.config.local:
-            raise Exception('cannot install apt-get upgrade for local only installs')
-        return [CommandAction(['sudo', 'apt-get', 'upgrade'])]
+        return [CommandAction(['sudo', 'apt-get', 'upgrade'], deps=['apt-get'])]
 
 @abstract
-@depends('apt-get')
 class AptGetPackage(PackageBase):
     def __init__(self, package):
         self.package = package

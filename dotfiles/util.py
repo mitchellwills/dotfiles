@@ -98,20 +98,22 @@ def find_by_name(l, name):
             return item
     return None
 
+def _get_set_from_obj_and_class(obj, name):
+    result = set()
+    if hasattr(obj.__class__, name):
+        result.update(getattr(obj.__class__, name))
+    if hasattr(obj, name):
+        result.update(getattr(obj, name))
+    return result
+
 def object_deps(obj):
-    if hasattr(obj.__class__, 'deps'):
-        return obj.__class__.deps
-    return set()
+    return _get_set_from_obj_and_class(obj, 'deps')
 
 def object_suggestions(obj):
-    if hasattr(obj.__class__, 'suggests'):
-        return obj.__class__.suggests
-    return set()
+    return _get_set_from_obj_and_class(obj, 'suggests')
 
 def object_configures(obj):
-    if hasattr(obj.__class__, 'configures'):
-        return obj.__class__.configures
-    return set()
+    return _get_set_from_obj_and_class(obj, 'configures')
 
 def is_abstract(obj):
     if not (inspect.isclass(obj) or inspect.ismodule(obj)):

@@ -10,11 +10,9 @@ class PipActionFactory(PackageActionFactory):
         return 'pip'
 
     def install(self, packages):
-        if self.config.local:
-            raise Exception('cannot install pip package without sudo')
         command = ['sudo', 'pip', 'install']
         command.extend(packages)
-        return [CommandAction(command)]
+        return [CommandAction(command, deps=['pip'])]
 
 
 

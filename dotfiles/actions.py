@@ -18,8 +18,11 @@ class PackageActionFactory(object):
         return getattr(self.context, name)
 
 class CommandAction(object):
-    def __init__(self, command):
+    def __init__(self, command, deps = None):
         self.command = command
+        if deps is not None:
+            for dep in deps:
+                depends(dep)(self)
 
     def __call__(self):
         logger.call(self.command)
