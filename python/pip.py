@@ -2,7 +2,7 @@ from __future__ import absolute_import
 from dotfiles.package_base import *
 from dotfiles.src_package import *
 import dotfiles.logger as logger
-
+import subprocess
 
 
 class PipActionFactory(PackageActionFactory):
@@ -10,11 +10,27 @@ class PipActionFactory(PackageActionFactory):
         return 'pip'
 
     def install(self, packages):
-        command = ['sudo', 'pip', 'install']
+        command = ['pip', 'install']
+        if self.config.local:
+            command.append('--install-option=--prefix='+self.config.local_install.dir)
+        else:
+            command.insert(0, 'sudo')
         command.extend(packages)
         return [CommandAction(command, deps=['pip'])]
 
 
+class pip(PackageBase):
+    def already_installed(self):
+        return subprocess.call(['pip', '-V']) == 0
+    def install(self):
+        if self.config.local:
+            if self.already_installed():
+                logger.log('Installing local, but detected pip already installed', verbose = True)
+                return []
+            else:
+                raise Exception('cannot install pip locally')
+        else:
+            return self.action('apt-get').install(['python-pip'])
 
 @abstract
 @depends('pip')

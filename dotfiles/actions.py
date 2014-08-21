@@ -17,6 +17,14 @@ class PackageActionFactory(object):
             raise Exception('Action Factory not yet initialized')
         return getattr(self.context, name)
 
+class DependsAction(object):
+    def __init__(self, deps):
+        for dep in deps:
+            depends(dep)(self)
+
+    def __call__(self):
+        pass
+
 class CommandAction(object):
     def __init__(self, command, deps = None, **kwargs):
         self.command = command

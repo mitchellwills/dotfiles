@@ -1,5 +1,6 @@
 from __future__ import absolute_import
 from dotfiles.package_base import *
+from dotfiles.actions import *
 import os
 
 @suggests('rosdep')

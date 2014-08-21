@@ -48,7 +48,7 @@ class PackageState:
 
     @staticmethod
     def could_install(state):
-        return state == UNINITIALIZED or state == NOT_INSTALLABLE or state == DEPS_NOT_SATISFIED or state == INSTALL_FAILED
+        return state == PackageState.UNINITIALIZED or state == PackageState.NOT_INSTALLABLE or state == PackageState.DEPS_NOT_SATISFIED or state == PackageState.INSTALL_FAILED
 
 class PackageInfo(RelationalDatabaseNode):
     def __init__(self, name):
@@ -124,6 +124,7 @@ class PackageCollection(object):
 
                 package_info.install_steps = package.install()
                 if package_info.install_steps is None:
+                    package_info.state_message = 'No install steps returned'
                     package_info.state = PackageState.NOT_INSTALLABLE
                 else:
                     package_info.state = PackageState.INITIALIZED
@@ -174,11 +175,11 @@ class PackageCollection(object):
                 package_info = self.packages[package_name]
                 if package_info.state == PackageState.INITIALIZED:
                     for dep in package_info.get_related(PackageRelationship.DEPENDS_ON):
-                        if dep.state == PackageState.NOT_INSTALLABLE:
+                        if dep.state == PackageState.NOT_INSTALLABLE or dep.state == PackageState.DEPS_NOT_SATISFIED:
                             package_info.state = PackageState.DEPS_NOT_SATISFIED
                             package_info.state_message = 'Dep \''+dep.name+'\' is not installable'
                             action_taken = True
-                        if dep.state == PackageState.INSTALL_FAILED:
+                        elif dep.state == PackageState.INSTALL_FAILED:
                             package_info.state = PackageState.DEPS_NOT_SATISFIED
                             package_info.state_message = 'Dep \''+dep.name+'\' failed to install'
                             action_taken = True
@@ -268,7 +269,7 @@ def main(rootdir):
 
         config = config_loader.build()
 
-        if config.local is None:
+        if 'local' not in config:
             config.assign('local', prompt_yes_no('install local'), float("inf"))
 
 
@@ -313,6 +314,7 @@ def main(rootdir):
     configure_env_path('LIBRARY_PATH', config.env.library_path)
     configure_env_path('LD_LIBRARY_PATH', config.env.ld_library_path)
     configure_env_path('CPATH', config.env.cpath)
+    configure_env_path('PYTHONPATH', config.env.pythonpath)
 
     packages = PackageCollection(global_context, raw_packages, package_factories)
     for package_name in config.install:

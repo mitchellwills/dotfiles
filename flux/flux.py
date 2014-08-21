@@ -21,7 +21,9 @@ class flux(PackageBase):
         )
 
         if self.config.local:
-            actions.extend(self.action('file').mv(self.build_file('xflux'), os.path.join(os.path.expanduser(self.config.local_install.dir), 'bin')))
+            bin_dir =  os.path.join(os.path.expanduser(self.config.local_install.dir), 'bin')
+            actions.extend(self.action('file').mkdir(bin_dir))
+            actions.extend(self.action('file').mv(self.build_file('xflux'), bin_dir))
         else:
             actions.extend(self.action('file').mv(self.build_file('xflux'), '/usr/bin', sudo=True))
 

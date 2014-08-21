@@ -1,11 +1,10 @@
 from __future__ import absolute_import
 from dotfiles.package_base import *
 from dotfiles.src_package import *
+from dotfiles.util import *
 import os
 
 @suggests('tmux_conf')
-@depends('libevent')
-@depends('ncurses')
 class tmux(PackageBase):
     def install(self):
         if self.config.local:
@@ -13,10 +12,11 @@ class tmux(PackageBase):
             env = dict(os.environ)
             env['LDFLAGS'] = '-static'
             return concat_lists(
+                [DependsAction(['libevent-dev', 'ncurses-dev'])],
                 package.update(),
                 package.configure(prefix=self.config.local_install.dir),
                 package.make_install(env=env)
             )
         else:
-            return self.action('apt-get').install('tmux')
+            return self.action('apt-get').install(['tmux'])
 

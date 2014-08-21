@@ -84,7 +84,7 @@ class SrcPackageActionFactory(PackageActionFactory):
         return package.update()
 
     def configure(self, package):
-        return package.configure()
+        return package.configure(prefix=self.config.local_install.dir)
 
     def make_install(self, package):
         return package.make_install()
@@ -103,7 +103,7 @@ class SrcConfigureMakeInstallPackage(PackageBase):
         return self.pkg_name
 
     def install(self):
-        package = SrcPackage(self.pkg_name, self.repo, self)
+        package = SrcPackage(self, self.pkg_name, self.repo)
         return self.action('src').update_configure_make_install(package)
 
 

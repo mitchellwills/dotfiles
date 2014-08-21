@@ -72,6 +72,7 @@ class bashrc(PackageBase):
         write_path_bash(self.config.env.cpath, 'CPATH')
         write_path_bash(self.config.env.library_path, 'LIBRARY_PATH')
         write_path_bash(self.config.env.ld_library_path, 'LD_LIBRARY_PATH')
+        write_path_bash(self.config.env.pythonpath, 'PYTHONPATH')
         return result.getvalue()
 
     def bash_completion(self):
