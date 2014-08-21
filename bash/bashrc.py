@@ -68,8 +68,10 @@ class bashrc(PackageBase):
                     new_path = new_path + self.eval_templates(path_entry)+':'
                 new_path = new_path + '$'+path_var
                 result.write('export '+path_var+'='+new_path+'\n')
-        write_path_bash(self.config.bash.path, 'PATH')
-        write_path_bash(self.config.bash.ldpath, 'LD_LIBRARY_PATH')
+        write_path_bash(self.config.env.path, 'PATH')
+        write_path_bash(self.config.env.cpath, 'CPATH')
+        write_path_bash(self.config.env.library_path, 'LIBRARY_PATH')
+        write_path_bash(self.config.env.ld_library_path, 'LD_LIBRARY_PATH')
         return result.getvalue()
 
     def bash_completion(self):

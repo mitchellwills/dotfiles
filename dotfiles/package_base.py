@@ -1,6 +1,5 @@
 from __future__ import absolute_import
 from dotfiles.util import *
-from dotfiles.src_package import *
 from dotfiles.module_base import *
 import dotfiles.logger as logger
 
@@ -36,19 +35,3 @@ class PackageBase(object):
     def install(self):
         logger.failed('No install for '+self.name())
         return None
-
-@abstract
-class SrcConfigureMakeInstallPackage(PackageBase):
-    def __init__(self, pkg_name, repo):
-        PackageBase.__init__(self)
-        self.pkg_name = pkg_name
-        self.repo = repo
-
-    def name(self):
-        return self.pkg_name
-
-    def install(self):
-        package = SrcPackage(self.pkg_name, self.repo, self)
-        return self.action('src').update_configure_make_install(package)
-
-

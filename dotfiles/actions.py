@@ -18,14 +18,15 @@ class PackageActionFactory(object):
         return getattr(self.context, name)
 
 class CommandAction(object):
-    def __init__(self, command, deps = None):
+    def __init__(self, command, deps = None, **kwargs):
         self.command = command
+        self.kwargs = kwargs
         if deps is not None:
             for dep in deps:
                 depends(dep)(self)
 
     def __call__(self):
-        logger.call(self.command)
+        logger.call(self.command, **self.kwargs)
 
 class DownloadAction(object):
     def __init__(self, dest, url):
@@ -54,6 +55,9 @@ class NetPackageActionFactory(PackageActionFactory):
     def download(self, dest, url):
         return [DownloadAction(dest, url)]
 
+    def wget(self, dest, url):
+        return [CommandAction(['wget', '-O', dest, url])]
+
 class ArchivePackageActionFactory(PackageActionFactory):
     def name(self):
         return 'archive'
@@ -73,6 +77,9 @@ class FilePackageActionFactory(PackageActionFactory):
 
     def mkdir(self, d):
         return [CommandAction(['mkdir', '-p', d])]
+
+    def rmdir(self, d):
+        return [CommandAction(['rm', '-r', d])]
 
     def symlink(self, name, target_path):
         return [SymlinkAction(name, target_path)]

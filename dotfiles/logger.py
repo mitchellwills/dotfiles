@@ -84,7 +84,7 @@ def log_stderr(stdout, stderr):
 
 def call(*args, **kwargs):
     log_message = 'runnning: '+str(args[0])
-    if 'cwd' in kwargs:
+    if 'cwd' in kwargs and kwargs['cwd'] is not None:
         log_message += '\t(wd='+kwargs['cwd']+')'
     with frame(log_message):
         with trylog('done'):
@@ -98,6 +98,8 @@ def call(*args, **kwargs):
             stdout, stderr = p.communicate()
             output_handler(stdout, stderr)
             if p.returncode != 0:
-                print stdout
-                print stderr
+                if stdout is not None:
+                    print stdout
+                if stderr is not None:
+                    print stderr
                 raise Exception('Error Code: '+str(p.returncode))

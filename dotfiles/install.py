@@ -11,6 +11,7 @@ from dotfiles.config import ConfigLoader
 from dotfiles.util import *
 import dotfiles.module_base as module_base
 import dotfiles.package_base as package_base
+import dotfiles.actions as actions
 import dotfiles.src_package as src_package
 import dotfiles.logger as logger
 from collections import defaultdict
@@ -41,8 +42,13 @@ class PackageState:
     INITIALIZED = 'initialized'
     INSTALLED = 'installed'
     NOT_INSTALLABLE = 'not installable'
+    DEPS_NOT_SATISFIED = 'deps not satisfied'
     INSTALL_FAILED = 'install failed'
-    ALL = [UNINITIALIZED, INITIALIZED, INSTALLED, NOT_INSTALLABLE, INSTALL_FAILED]
+    ALL = [UNINITIALIZED, INITIALIZED, DEPS_NOT_SATISFIED, INSTALLED, NOT_INSTALLABLE, INSTALL_FAILED]
+
+    @staticmethod
+    def could_install(state):
+        return state == UNINITIALIZED or state == NOT_INSTALLABLE or state == DEPS_NOT_SATISFIED or state == INSTALL_FAILED
 
 class PackageInfo(RelationalDatabaseNode):
     def __init__(self, name):
@@ -111,35 +117,36 @@ class PackageCollection(object):
                 package = find_by_name(self.raw_packages, name)
             if package is None:
                 raise Exception('Could not find package: '+name)
-            package.init_package(self.context)
-            try:
-                install_steps = package.install()
-            except Exception as e:
-                install_steps = None
-                install_steps_error = e
 
             package_info = self.ensure_package(package.name())
-            package_info.install_steps = install_steps
-            if install_steps is not None:
-                for step in install_steps:
-                    for dep_name in self.resolve_package_aliases(object_deps(step)):
-                        self.add_package(dep_name)
-                        package_info.add_relationship(PackageRelationship.DEPENDS_ON, dep_name)
-            for dep_name in self.resolve_package_aliases(object_deps(package)):
-                self.add_package(dep_name)
-                package_info.add_relationship(PackageRelationship.DEPENDS_ON, dep_name)
-            for suggest_name in self.resolve_package_aliases(object_suggestions(package)):
-                self.add_package(suggest_name)
-                package_info.add_relationship(PackageRelationship.SUGGESTS, suggest_name)
-            for configures_name in self.resolve_package_aliases(object_configures(package)):
-                self.ensure_package(configures_name)
-                package_info.add_relationship(PackageRelationship.CONFIGURES, configures_name)
+            try:
+                package.init_package(self.context)
 
-            if install_steps is None:
+                package_info.install_steps = package.install()
+                if package_info.install_steps is None:
+                    package_info.state = PackageState.NOT_INSTALLABLE
+                else:
+                    package_info.state = PackageState.INITIALIZED
+                    for step in package_info.install_steps:
+                        for dep_name in self.resolve_package_aliases(object_deps(step)):
+                            self.add_package(dep_name)
+                            package_info.add_relationship(PackageRelationship.DEPENDS_ON, dep_name)
+
+                for dep_name in self.resolve_package_aliases(object_deps(package)):
+                    self.add_package(dep_name)
+                    package_info.add_relationship(PackageRelationship.DEPENDS_ON, dep_name)
+                for suggest_name in self.resolve_package_aliases(object_suggestions(package)):
+                    self.add_package(suggest_name)
+                    package_info.add_relationship(PackageRelationship.SUGGESTS, suggest_name)
+                for configures_name in self.resolve_package_aliases(object_configures(package)):
+                    self.ensure_package(configures_name)
+                    package_info.add_relationship(PackageRelationship.CONFIGURES, configures_name)
+            except Exception as e:
+                package_info.state_error = e
+                package_info.state_message = 'Error configuring package'
                 package_info.state = PackageState.NOT_INSTALLABLE
-                package_info.state_error = install_steps_error
-            else:
-                package_info.state = PackageState.INITIALIZED
+
+
 
 
     def get_installable_packages(self):
@@ -153,7 +160,7 @@ class PackageCollection(object):
                         deps_satisfied = False
                 configured_satisfied = True
                 for dep in package_info.get_related(PackageRelationship.CONFIGURED_BY):
-                    if dep.state != PackageState.INSTALLED and dep.state != PackageState.NOT_INSTALLABLE:
+                    if PackageState.could_install(dep.state):
                         configured_satisfied = False
                 if deps_satisfied and configured_satisfied:
                     installable_packages.add(package_info)
@@ -168,11 +175,11 @@ class PackageCollection(object):
                 if package_info.state == PackageState.INITIALIZED:
                     for dep in package_info.get_related(PackageRelationship.DEPENDS_ON):
                         if dep.state == PackageState.NOT_INSTALLABLE:
-                            package_info.state = PackageState.NOT_INSTALLABLE
+                            package_info.state = PackageState.DEPS_NOT_SATISFIED
                             package_info.state_message = 'Dep \''+dep.name+'\' is not installable'
                             action_taken = True
                         if dep.state == PackageState.INSTALL_FAILED:
-                            package_info.state = PackageState.NOT_INSTALLABLE
+                            package_info.state = PackageState.DEPS_NOT_SATISFIED
                             package_info.state_message = 'Dep \''+dep.name+'\' failed to install'
                             action_taken = True
 
@@ -210,7 +217,7 @@ def load_packages(path):
                                 mod_found = True
                                 package = thing()
                                 packages.append(package)
-                            elif issubclass(thing, package_base.PackageActionFactory):
+                            elif issubclass(thing, actions.PackageActionFactory):
                                 logger.success('Loading package action factory: '+filename+':'+name, verbose=True)
                                 mod_found = True
                                 action_factory = thing()
@@ -290,14 +297,22 @@ def main(rootdir):
     package_aliases = config.package_aliases
 
     # setup path for sub processes
-    current_path = os.environ['PATH']
-    path = ''
-    if len(current_path) > 0:
-        path = ':'+current_path
-    path = ':'.join([os.path.expanduser(global_context.eval_templates(element)) for element in config.bash.path]) + path
-    os.environ['PATH'] = path
-    logger.log('Modified PATH: '+path)
+    def configure_env_path(name, new_elements):
+        if name in os.environ:
+            current_path = os.environ[name]
+        else:
+            current_path = ''
+        path = ''
+        if len(current_path) > 0:
+            path = ':'+current_path
+        path = ':'.join([os.path.expanduser(global_context.eval_templates(element)) for element in new_elements]) + path
+        os.environ[name] = path
+        logger.log('Modified '+name+': '+path)
 
+    configure_env_path('PATH', config.env.path)
+    configure_env_path('LIBRARY_PATH', config.env.library_path)
+    configure_env_path('LD_LIBRARY_PATH', config.env.ld_library_path)
+    configure_env_path('CPATH', config.env.cpath)
 
     packages = PackageCollection(global_context, raw_packages, package_factories)
     for package_name in config.install:
@@ -322,8 +337,9 @@ def main(rootdir):
         if len(state_items) > 0:
             with logger.frame(state):
                 for package_info in state_items:
-                    with logger.frame(package_info.name):
-                        if package_info.state_message is not None:
-                            logger.log(package_info.state_message)
+                    frame = package_info.name
+                    if package_info.state_message is not None:
+                        frame = frame + ': ' + package_info.state_message
+                    with logger.frame(frame):
                         if package_info.state_error is not None:
-                            logger.log(str(package_info.state_error))
+                            logger.log('Error: '+str(package_info.state_error))
