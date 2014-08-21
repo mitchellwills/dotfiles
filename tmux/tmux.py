@@ -20,3 +20,4 @@ class tmux(PackageBase):
         else:
             return self.action('apt-get').install(['tmux'])
 
+
