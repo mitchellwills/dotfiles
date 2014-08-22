@@ -2,6 +2,7 @@ from __future__ import absolute_import
 import subprocess
 
 __abstract__ = True
+__all__ = ['init', 'trylog', 'log', 'success', 'failed', 'warning', 'frame', 'log_stdout', 'log_stderr', 'call']
 
 bash_normal = '\033[0m'
 bash_red = '\033[0;31m'

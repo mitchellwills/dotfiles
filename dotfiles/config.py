@@ -5,6 +5,7 @@ import dotfiles.logger as logger
 from dotfiles.util import *
 
 __abstract__ = True
+__all__ = ['Config', 'ConfigLoader']
 
 def parse_value(val):
     if type(val) is not str:

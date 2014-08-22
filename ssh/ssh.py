@@ -1,5 +1,7 @@
 from __future__ import absolute_import
 from dotfiles.package_base import *
+from dotfiles.util import *
+import re
 
 class HostConfig(object):
     def __init__(self, host, user, hostname, identity):

@@ -1,5 +1,6 @@
 from __future__ import absolute_import
 from dotfiles.package_base import *
+from dotfiles.util import *
 
 @configures('ssh_config')
 class robot_aliases(PackageBase):

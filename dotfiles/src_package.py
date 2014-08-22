@@ -5,6 +5,8 @@ from dotfiles.actions import *
 from dotfiles.package_base import *
 from dotfiles.util import *
 
+__all__ = ['SrcRepo', 'GitRepo', 'TarGzWebArchive', 'SrcPackage', 'SrcPackageActionFactory', 'SrcConfigureMakeInstallPackage']
+
 class SrcRepo(object):
     pass
 

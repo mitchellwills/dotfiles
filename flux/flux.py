@@ -1,6 +1,6 @@
 from __future__ import absolute_import
-from dotfiles.module_base import *
 from dotfiles.package_base import *
+from dotfiles.util import *
 import os
 
 @depends('flux')

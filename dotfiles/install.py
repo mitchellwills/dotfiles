@@ -9,7 +9,6 @@ import inspect
 
 from dotfiles.config import ConfigLoader
 from dotfiles.util import *
-import dotfiles.module_base as module_base
 import dotfiles.package_base as package_base
 import dotfiles.actions as actions
 import dotfiles.src_package as src_package
@@ -18,6 +17,7 @@ from collections import defaultdict
 from spgl.relational_database import *
 
 __abstract__ = True
+__all__ = ['main']
 
 BUILD_DIR_NAME = 'build'
 SRC_DIR_NAME = 'src'
@@ -286,7 +286,7 @@ def main(rootdir):
                     action_factories.extend(module_action_factories)
                     package_factories.extend(module_package_factories)
 
-    global_context = module_base.GlobalContext(rootdir, srcdir, config, action_factories)
+    global_context = package_base.GlobalContext(rootdir, srcdir, config, action_factories)
 
     for factory in action_factories:
         factory.init_factory(global_context)

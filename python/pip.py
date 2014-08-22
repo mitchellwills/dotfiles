@@ -1,6 +1,8 @@
 from __future__ import absolute_import
 from dotfiles.package_base import *
 from dotfiles.src_package import *
+from dotfiles.util import *
+from dotfiles.actions import *
 import dotfiles.logger as logger
 import subprocess
 

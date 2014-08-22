@@ -1,6 +1,7 @@
 from __future__ import absolute_import
 import os
 from dotfiles.package_base import *
+from dotfiles.util import *
 import dotfiles.logger as logger
 import glob
 

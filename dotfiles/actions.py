@@ -3,6 +3,9 @@ import os
 import dotfiles.logger as logger
 import urllib2
 from dotfiles.package_base import *
+from dotfiles.util import *
+
+__all__ = ['PackageActionFactory', 'DependsAction', 'CommandAction', 'DownloadAction', 'SystemActionFactory', 'NetPackageActionFactory', 'ArchivePackageActionFactory', 'FilePackageActionFactory', 'SymlinkAction']
 
 @abstract
 class PackageActionFactory(object):

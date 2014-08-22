@@ -1,9 +1,11 @@
 from __future__ import absolute_import
 from dotfiles.util import *
-from dotfiles.module_base import *
 import dotfiles.logger as logger
+import StringIO
+import re
 
 __abstract__ = True
+__all__ = ['PackageFactory', 'PackageBase', 'GlobalContext']
 
 @abstract
 class PackageFactory(object):
