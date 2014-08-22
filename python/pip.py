@@ -23,7 +23,10 @@ class PipActionFactory(PackageActionFactory):
 
 class pip(PackageBase):
     def already_installed(self):
-        return subprocess.call(['pip', '-V']) == 0
+        try:
+            return subprocess.call(['pip', '-V']) == 0
+        except OSError:
+            return False
     def install(self):
         if self.config.local:
             if self.already_installed():
