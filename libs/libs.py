@@ -1,6 +1,7 @@
 from __future__ import absolute_import
 from dotfiles.package_base import *
 from dotfiles.src_package import *
+from dotfiles.util import *
 
 class libevent(PackageBase):
     def name(self):
