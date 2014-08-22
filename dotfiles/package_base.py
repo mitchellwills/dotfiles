@@ -35,3 +35,46 @@ class PackageBase(object):
     def install(self):
         logger.failed('No install for '+self.name())
         return None
+
+
+
+BUILD_DIR_NAME = 'build'
+SRC_DIR_NAME = 'src'
+
+class GlobalContext(object):
+    def __init__(self, base_dir, src_dir, config, action_factories):
+        self.base_dir = base_dir
+        self.src_dir = src_dir
+        self.config = config
+        self.action_factories = action_factories
+
+    def base_file(self, name):
+        return os.path.join(self.base_dir, name)
+
+    def src_file(self, name):
+        return os.path.join(self.base_file(SRC_DIR_NAME), name)
+
+    def build_file(self, name):
+        return os.path.join(self.base_file(BUILD_DIR_NAME), name)
+
+    def home_file(self, name):
+        return os.path.expanduser(os.path.join('~/', name))
+
+    def action(self, name):
+        result = find_by_name(self.action_factories, name)
+        if result is None:
+            raise Exception('Could not find action factory: '+name)
+        return result
+
+    def eval_template_content(self, match):
+        template_content = match.group(1)
+        if '\n' in template_content:
+            content = StringIO.StringIO()
+            scope = {"__builtins__": __builtins__, "config": self.config, "out": content}
+            exec(template_content, scope)
+            return content.getvalue()
+        else:
+            return eval(template_content, {"__builtins__": __builtins__, "config": self.config})
+
+    def eval_templates(self, content):
+        return re.sub('{{{{(.*?)}}}}', self.eval_template_content, content, flags=re.DOTALL)
