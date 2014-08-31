@@ -337,6 +337,7 @@ def main(rootdir):
                     except Exception as e:
                         package_info.state = PackageState.INSTALL_FAILED
                         package_info.state_error = e
+                        logger.failed(str(e))
                         if args.verbose:
                             raise
             packages.propagate_package_state()

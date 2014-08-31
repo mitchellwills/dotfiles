@@ -75,7 +75,7 @@ class NetPackageActionFactory(PackageActionFactory):
         return [DownloadAction(dest, url)]
 
     def wget(self, dest, url):
-        return [CommandAction(['wget', '-O', dest, url])]
+        return [CommandAction(['wget', '--no-check-certificate', '-O', dest, url])]
 
 class ArchivePackageActionFactory(PackageActionFactory):
     def name(self):

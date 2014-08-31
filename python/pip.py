@@ -14,7 +14,7 @@ class PipActionFactory(PackageActionFactory):
     def install(self, packages):
         command = ['pip', 'install']
         if self.config.local:
-            command.append('--install-option=--prefix='+self.config.local_install.dir)
+            command.append('--install-option=--prefix='+os.path.expanduser(self.config.local_install.dir))
         else:
             command.insert(0, 'sudo')
         command.extend(packages)
@@ -33,7 +33,10 @@ class pip(PackageBase):
                 logger.log('Installing local, but detected pip already installed', verbose = True)
                 return []
             else:
-                raise Exception('cannot install pip locally')
+                return concat_lists(
+                    self.action('net').wget(self.build_file('get-pip.py'), 'https://bootstrap.pypa.io/get-pip.py'),
+                    [CommandAction(['python'+self.config.python.version, 'get-pip.py', '--user'], cwd=self.build_file(''))]
+                    )
         else:
             return self.action('apt-get').install(['python-pip'])
 
