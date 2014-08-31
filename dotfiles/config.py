@@ -242,8 +242,12 @@ class ConfigLoader(object):
     def build(self):
         numbered_config_actions = list(enumerate(self.config_actions))
         config = Config()
-        config.assign('system.distributor_id', execute_with_stdout(['lsb_release', '-is']).strip())
-        config.assign('system.codename', execute_with_stdout(['lsb_release', '-cs']).strip())
+        try:
+            config.assign('system.distributor_id', execute_with_stdout(['lsb_release', '-is']).strip())
+            config.assign('system.version', execute_with_stdout(['lsb_release', '-cs']).strip())
+        except:
+            config.assign('system.distributor_id', execute_with_stdout(['uname', '-s']).strip())
+            config.assign('system.version', execute_with_stdout(['uname', '-r']).strip())
         config.assign('system.processor', execute_with_stdout(['uname', '-p']).strip())
         evaluate_config(numbered_config_actions, config)
         return config
