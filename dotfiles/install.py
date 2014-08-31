@@ -241,6 +241,7 @@ def load_packages(path):
 def main(rootdir):
     parser = argparse.ArgumentParser(description='Install dotfiles')
     parser.add_argument('--verbose', help="print verbose output", dest='verbose', action='store_true', default=False)
+    parser.add_argument('--clean', help="do a clean build of source repos", dest='clean', action='store_true', default=False)
 
     args = parser.parse_args()
     logger.init(args.verbose)
@@ -272,6 +273,10 @@ def main(rootdir):
         if 'local' not in config:
             config.assign('local', prompt_yes_no('install local'), float("inf"))
 
+        if args.clean:
+            config.assign('src.clean_src', True, float("inf"))
+
+        config.src.add('make_args', '-j'+config.system.cpu_count, -1)
 
     raw_packages = []
     action_factories = []
@@ -332,6 +337,8 @@ def main(rootdir):
                     except Exception as e:
                         package_info.state = PackageState.INSTALL_FAILED
                         package_info.state_error = e
+                        if args.verbose:
+                            raise
             packages.propagate_package_state()
 
     for state in PackageState.ALL:

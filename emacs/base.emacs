@@ -25,3 +25,9 @@
 (global-set-key (kbd "C-x M-[ b") 'move-border-down)
 (global-set-key (kbd "C-x M-[ d") 'move-border-left)
 (global-set-key (kbd "C-x M-[ c") 'move-border-right)
+
+(setq package-archives '(("gnu" . "http://elpa.gnu.org/packages/")
+                         ("marmalade" . "http://marmalade-repo.org/packages/")
+                         ("melpa" . "http://melpa.milkbox.net/packages/")))
+
+(load-theme 'wombat t)

@@ -28,6 +28,14 @@ class DependsAction(object):
     def __call__(self):
         pass
 
+class LazyAction(object):
+    def __init__(self, action_generator):
+        self.action_generator = action_generator
+    def __call__(self):
+        actions = self.action_generator()
+        for action in actions:
+            action()
+
 class CommandAction(object):
     def __init__(self, command, deps = None, **kwargs):
         self.command = command
@@ -76,6 +84,32 @@ class ArchivePackageActionFactory(PackageActionFactory):
     def untar(self, archive, dest):
         return [CommandAction(['tar', '-xzf', archive, '--directory='+dest])]
 
+class Md5ActionFactory(PackageActionFactory):
+    def name(self):
+        return 'md5'
+
+    def compute_to_file(self, filename):
+        def write_to_file():
+            with open(filename+'.md5', 'w') as md5_file:
+                logger.call(['md5sum', '-b', filename], stdout=md5_file)
+        return [write_to_file]
+
+    def check(self, filename, action):
+        def func():
+            result = subprocess.call(['md5sum', '-c', filename+'.md5'])
+            action(True if result == 0 else False)
+        return [func]
+
+class LazyActionFactory(PackageActionFactory):
+    def name(self):
+        return 'lazy'
+
+    def ifthenelse(self, condition, then_actions, else_actions):
+        return [LazyAction(lambda: then_actions if condition() else else_actions)]
+
+    def ifthen(self, condition, actions):
+        return self.ifthenelse(condition, actions, [])
+
 class FilePackageActionFactory(PackageActionFactory):
     def name(self):
         return 'file'
@@ -89,8 +123,11 @@ class FilePackageActionFactory(PackageActionFactory):
     def mkdir(self, d):
         return [CommandAction(['mkdir', '-p', d])]
 
-    def rmdir(self, d):
-        return [CommandAction(['rm', '-r', d])]
+    def rmdir(self, d, force=False):
+        if force:
+            return [CommandAction(['rm', '-rf', d])]
+        else:
+            return [CommandAction(['rm', '-r', d])]
 
     def symlink(self, name, target_path):
         return [SymlinkAction(name, target_path)]

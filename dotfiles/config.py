@@ -3,6 +3,7 @@ import os
 import re
 import dotfiles.logger as logger
 from dotfiles.util import *
+import multiprocessing
 
 __abstract__ = True
 __all__ = ['Config', 'ConfigLoader']
@@ -249,6 +250,7 @@ class ConfigLoader(object):
             config.assign('system.distributor_id', execute_with_stdout(['uname', '-s']).strip())
             config.assign('system.version', execute_with_stdout(['uname', '-r']).strip())
         config.assign('system.processor', execute_with_stdout(['uname', '-p']).strip())
+        config.assign('system.cpu_count', str(multiprocessing.cpu_count()))
         evaluate_config(numbered_config_actions, config)
         return config
 

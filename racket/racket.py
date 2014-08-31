@@ -3,17 +3,15 @@ from dotfiles.package_base import *
 from dotfiles.src_package import *
 from dotfiles.util import *
 
-@suggests('gitg')
-@suggests('gitconfig')
-class git(PackageBase):
+class racket(PackageBase):
     def install(self):
         if self.config.local:
-            package = SrcPackage(self, 'git', TarGzWebArchive('https://www.kernel.org/pub/software/scm/git/git-1.9.4.tar.gz', unique_file_url=True), 'git-1.9.4')
+            package = SrcPackage(self, 'racket', TarGzWebArchive('http://mirror.racket-lang.org/installers/6.1/racket-6.1-src-builtpkgs.tgz', unique_file_url=True), 'racket-6.1/src')
             return concat_lists(
                 package.update(),
                 package.configure(prefix=self.config.local_install.dir),
-                package.make_install()
+                package.make(),
+                package.make(['plain-install'])
             )
         else:
-            return self.action('apt-get').install(['git'])
-
+            return self.action('apt-get').install(['racket'])

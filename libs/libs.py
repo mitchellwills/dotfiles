@@ -8,7 +8,7 @@ class libevent(PackageBase):
         return 'libevent-dev'
     def install(self):
         if self.config.local:
-            package = SrcPackage(self, 'libevent', TarGzWebArchive('https://github.com/downloads/libevent/libevent/libevent-2.0.21-stable.tar.gz'), 'libevent-2.0.21-stable')
+            package = SrcPackage(self, 'libevent', TarGzWebArchive('https://github.com/downloads/libevent/libevent/libevent-2.0.21-stable.tar.gz', unique_file_url=True), 'libevent-2.0.21-stable')
             return concat_lists(
                 package.update(),
                 package.configure(prefix=self.config.local_install.dir, args=['--disable-shared']),
@@ -22,7 +22,7 @@ class ncurses(PackageBase):
         return 'ncurses-dev'
     def install(self):
         if self.config.local:
-            package = SrcPackage(self, 'ncurses', TarGzWebArchive('ftp://ftp.gnu.org/gnu/ncurses/ncurses-5.9.tar.gz'), 'ncurses-5.9')
+            package = SrcPackage(self, 'ncurses', TarGzWebArchive('ftp://ftp.gnu.org/gnu/ncurses/ncurses-5.9.tar.gz', unique_file_url=True), 'ncurses-5.9')
             return concat_lists(
                 package.update(),
                 package.configure(prefix=self.config.local_install.dir, args=['--disable-shared']),

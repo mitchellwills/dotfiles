@@ -3,17 +3,15 @@ from dotfiles.package_base import *
 from dotfiles.src_package import *
 from dotfiles.util import *
 
-@suggests('gitg')
-@suggests('gitconfig')
-class git(PackageBase):
+class htop(PackageBase):
     def install(self):
         if self.config.local:
-            package = SrcPackage(self, 'git', TarGzWebArchive('https://www.kernel.org/pub/software/scm/git/git-1.9.4.tar.gz', unique_file_url=True), 'git-1.9.4')
+            package = SrcPackage(self, 'htop', TarGzWebArchive('http://hisham.hm/htop/releases/1.0.3/htop-1.0.3.tar.gz', unique_file_url=True), 'htop-1.0.3')
             return concat_lists(
                 package.update(),
                 package.configure(prefix=self.config.local_install.dir),
+                package.make(),
                 package.make_install()
             )
         else:
-            return self.action('apt-get').install(['git'])
-
+            return self.action('apt-get').install(['htop'])
