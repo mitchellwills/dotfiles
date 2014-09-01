@@ -79,7 +79,7 @@ class SrcPackage(object):
             self.build_dir = self.src_dir
         else:
             self.build_dir = os.path.join(self.src_dir, build_dir)
-        self.modified = False
+        self.modified = True
 
     def update(self):
         result = []
