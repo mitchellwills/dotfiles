@@ -13,7 +13,7 @@ import os
 class ros(PackageBase):
     def setup_sources(self):
         logger.log('Installing ROS '+self.config.ros.version)
-        ros_package_repo = 'deb http://packages.ros.org/ros/ubuntu '+self.config.system.codename+' main'
+        ros_package_repo = 'deb http://packages.ros.org/ros/ubuntu '+self.config.system.version+' main'
         ros_repo_file = '/etc/apt/sources.list.d/ros-latest.list'
         if not (os.path.isfile(ros_repo_file) and ros_package_repo in open(ros_repo_file, 'r').read()):
             with logger.trylog('Installing ROS repo source and key'):
