@@ -48,7 +48,7 @@ class PackageState:
 
     @staticmethod
     def could_install(state):
-        return state == PackageState.UNINITIALIZED or state == PackageState.NOT_INSTALLABLE or state == PackageState.DEPS_NOT_SATISFIED or state == PackageState.INSTALL_FAILED
+        return state == PackageState.INITIALIZED
 
 class PackageInfo(RelationalDatabaseNode):
     def __init__(self, name):
