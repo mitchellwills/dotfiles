@@ -3,8 +3,7 @@ from dotfiles.package_base import *
 from dotfiles.src_package import *
 from dotfiles.util import *
 
-@suggests('emacs:geiser')
-@suggests('emacs:quack')
+@suggests('emacs:racket-mode')
 class racket(PackageBase):
     def install(self):
         if self.config.local:
