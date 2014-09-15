@@ -260,7 +260,8 @@ def main(rootdir):
 
     with logger.frame('Loading Configuration'):
         config_loader = ConfigLoader()
-        conf_files = filter(lambda f: f.endswith('.conf') and not f.startswith(srcdir), all_files_recursive(rootdir))
+        files = all_files_recursive(rootdir) + all_files_recursive(os.path.expanduser("~/.dotfiles-personal"))
+        conf_files = filter(lambda f: f.endswith('.conf') and not f.startswith(srcdir), files)
         for f in conf_files:
             with logger.trylog('loading conf: '+f):
                 config_loader.load_file(f)
