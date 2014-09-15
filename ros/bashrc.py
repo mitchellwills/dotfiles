@@ -9,6 +9,7 @@ class rossetup(PackageBase):
         self.config.bash.parts.assign('95-ros', 'source ~/.rossetup\n')
 
     def eval_template(self):
+        self.config.ensure('robots')
         rossetup_script = self.eval_templates(read_file(self.base_file('ros/.rossetup')))
         with open(self.build_file('.rossetup'), 'w') as f:
             f.write(rossetup_script)
