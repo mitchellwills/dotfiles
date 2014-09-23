@@ -7,9 +7,6 @@ from dotfiles.actions import *
 import glob
 
 @suggests('emacs-conf')
-@suggests('emacs:haskell-mode')
-@suggests('emacs:flycheck')
-@suggests('apt-get:yaml-mode')
 class emacs(PackageBase):
     def already_installed(self):
         try:
