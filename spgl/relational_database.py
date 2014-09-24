@@ -39,8 +39,14 @@ def make_inverse_relationships(relationship1, relationship2):
     relationship2.INVERSE = relationship1
 
 class RelationalDatabase(object):
-    def __init__(self):
+    def __init__(self, node_factory = None):
         self._nodes = dict()
+        self.node_factory = node_factory
+
+    def ensure_node(self, name):
+        if name not in self._nodes:
+            self.add_node(self.node_factory(name))
+        return self._nodes[name]
 
     def add_node(self, node):
         if not isinstance(node, RelationalDatabaseNode):
@@ -53,6 +59,8 @@ class RelationalDatabase(object):
         self._nodes[node.key] = node
 
     def add_relationship(self, node1_name, relationship, node2_name):
+        self.ensure_node(node1_name)
+        self.ensure_node(node2_name)
         return self._add_relationship(self._nodes[node1_name], relationship, self._nodes[node2_name])
 
     def _add_relationship(self, node1, relationship, node2):

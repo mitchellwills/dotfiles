@@ -64,7 +64,7 @@ class PackageInfo(RelationalDatabaseNode):
 
 class PackageCollection(object):
     def __init__(self, context, raw_packages, package_factories):
-        self.packages = RelationalDatabase()
+        self.packages = RelationalDatabase(lambda name: PackageInfo(name))
         self.context = context
         self.raw_packages = raw_packages
         self.package_factories = package_factories
@@ -75,15 +75,12 @@ class PackageCollection(object):
             package_info = self.ensure_package(package_name)
             if 'deps' in package_config:
                 for dep_name in self.resolve_package_aliases(package_config.deps):
-                    self.add_package(dep_name)
                     package_info.add_relationship(PackageRelationship.DEPENDS_ON, dep_name)
             if 'suggests' in package_config:
                 for suggest_name in self.resolve_package_aliases(package_config.suggests):
-                    self.add_package(suggest_name)
                     package_info.add_relationship(PackageRelationship.SUGGESTS, suggest_name)
             if 'configures' in package_config:
                 for configures_name in self.resolve_package_aliases(package_config.configures):
-                    self.ensure_package(configures_name)
                     package_info.add_relationship(PackageRelationship.CONFIGURES, configures_name)
 
 
@@ -99,9 +96,7 @@ class PackageCollection(object):
         return result
 
     def ensure_package(self, name):
-        if name not in self.packages:
-            self.packages.add_node(PackageInfo(name))
-        return self.packages[name]
+        return self.packages.ensure_node(name)
 
     def add_package(self, name):
         name = self.resolve_package_alias(name)
@@ -134,14 +129,16 @@ class PackageCollection(object):
                             package_info.add_relationship(PackageRelationship.DEPENDS_ON, dep_name)
 
                 for dep_name in self.resolve_package_aliases(object_deps(package)):
-                    self.add_package(dep_name)
                     package_info.add_relationship(PackageRelationship.DEPENDS_ON, dep_name)
                 for suggest_name in self.resolve_package_aliases(object_suggestions(package)):
-                    self.add_package(suggest_name)
                     package_info.add_relationship(PackageRelationship.SUGGESTS, suggest_name)
                 for configures_name in self.resolve_package_aliases(object_configures(package)):
-                    self.ensure_package(configures_name)
                     package_info.add_relationship(PackageRelationship.CONFIGURES, configures_name)
+
+                for dep_name in package_info.get_related(PackageRelationship.DEPENDS_ON):
+                    self.add_package(dep_name.key)
+                for suggest_name in package_info.get_related(PackageRelationship.SUGGESTS):
+                    self.add_package(suggest_name.key)
             except Exception as e:
                 package_info.state_error = e
                 package_info.state_message = 'Error configuring package'
@@ -242,6 +239,7 @@ def main(rootdir):
     parser = argparse.ArgumentParser(description='Install dotfiles')
     parser.add_argument('--verbose', help="print verbose output", dest='verbose', action='store_true', default=False)
     parser.add_argument('--clean', help="do a clean build of source repos", dest='clean', action='store_true', default=False)
+    parser.add_argument('install', nargs=argparse.REMAINDER)
 
     args = parser.parse_args()
     logger.init(args.verbose)
@@ -252,16 +250,15 @@ def main(rootdir):
     srcdir = os.path.join(rootdir, SRC_DIR_NAME)
 
 
-    if os.path.exists(builddir):
-        shutil.rmtree(builddir)
-    os.mkdir(builddir)
+    if not os.path.exists(builddir):
+        os.mkdir(builddir)
     if not os.path.exists(builddir):
         os.mkdir(srcdir)
 
     with logger.frame('Loading Configuration'):
         config_loader = ConfigLoader()
         files = all_files_recursive(rootdir) + all_files_recursive(os.path.expanduser("~/.dotfiles-personal"))
-        conf_files = filter(lambda f: f.endswith('.conf') and not f.startswith(srcdir), files)
+        conf_files = filter(lambda f: f.endswith('.conf') and not f.startswith(srcdir) and not f.startswith(builddir), files)
         for f in conf_files:
             with logger.trylog('loading conf: '+f):
                 config_loader.load_file(f)
@@ -323,8 +320,13 @@ def main(rootdir):
     configure_env_path('PYTHONPATH', config.env.pythonpath)
 
     packages = PackageCollection(global_context, raw_packages, package_factories)
-    for package_name in config.install:
-        packages.add_package(package_name)
+
+    if len(args.install) > 0:
+        for package_name in args.install:
+            packages.add_package(package_name)
+    else:
+        for package_name in config.install:
+            packages.add_package(package_name)
 
 
     for installable_packages in iter(packages.get_installable_packages, set()):
