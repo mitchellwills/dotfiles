@@ -1,0 +1,36 @@
+[color]
+	status = auto
+	diff = auto
+	branch = auto
+	interactive = auto
+
+[alias]
+	lola = log --graph --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cblue[%cn] %Cgreen(%cr)%Creset' --abbrev-commit --date=relative --all
+	co = checkout
+	cl = clone
+	df = diff --color-words
+	# from https://git.wiki.kernel.org/index.php/Aliases
+	serve = !git daemon --reuseaddr --verbose  --base-path=. --export-all ./.git
+	ci = commit
+	tree = log --graph --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cblue[%cn] %Cgreen(%cr)%Creset' --abbrev-commit --date=relative
+	dc = diff --color-words --cached
+	# pushes a new branch to origin
+	publish = !sh -c 'git push -u origin $(git rev-parse --abbrev-ref HEAD)'
+	st = status -s -b
+	unstage = reset HEAD --
+	lol = log --graph --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cblue[%cn] %Cgreen(%cr)%Creset' --abbrev-commit --date=relative
+	br = branch
+	cp = cherry-pick
+	cia = commit -a
+	# list all commits that have not yet been pushed to the upstream branch
+	pending = !sh -c 'git lol $(git config branch.$(git name-rev --name-only HEAD).remote)/$(git rev-parse --abbrev-ref --symbolic-full-name $(git config branch.$(git name-rev --name-only HEAD).merge))..HEAD'
+
+[push]
+	default = simple
+
+[user]
+	email = mwills@wpi.edu
+	name = Mitchell Wills
+
+[http]
+	sslVerify = true
