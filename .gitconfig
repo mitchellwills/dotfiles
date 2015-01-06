@@ -14,6 +14,7 @@
 	dc = diff --color-words --cached
 	ci = commit
 	cia = commit -a
+	ciaa = commit -a --amend
 
 
 	tree = log --graph --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cblue[%cn] %Cgreen(%cr)%Creset' --abbrev-commit --date=relative
