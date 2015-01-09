@@ -4,6 +4,10 @@
 	branch = auto
 	interactive = auto
 
+[pretty]
+	simple = format:%Cred%h%Creset -%C(yellow)%d%Creset %s %C(blue)[%an] %Cgreen(%ar)
+	verbose = format:%Cred%h%Creset -%C(yellow)%d%Creset %s %C(blue)[%an] %Cgreen(%ar) %Creset-- %C(cyan)[%cn] %C(magenta)(%cr)%Creset
+
 [alias]
 	st = status -s -b
 	br = branch
@@ -17,9 +21,9 @@
 	ciaa = commit -a --amend
 
 
-	tree = log --graph --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cblue[%cn] %Cgreen(%cr)%Creset' --abbrev-commit --date=relative
-	lol = log --graph --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cblue[%cn] %Cgreen(%cr)%Creset' --abbrev-commit --date=relative
-	lola = log --graph --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cblue[%cn] %Cgreen(%cr)%Creset' --abbrev-commit --date=relative --all
+	tree = log --graph --pretty=simple --abbrev-commit --date=relative
+	lol = log --graph --pretty=simple --abbrev-commit --date=relative
+	lola = log --graph --pretty=simple --abbrev-commit --date=relative --all
 	# based on https://github.com/mahiro/git-stuff/blob/master/bin/git-log-graph-dump
 	lolaa = !sh -c 'git lola $(git fsck --unreachable --no-reflogs 2>/dev/null | sed -n \"s/^\\w\\w* commit //p\")'
 
