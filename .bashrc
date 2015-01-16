@@ -24,7 +24,7 @@ shopt -s histappend
 # for setting history length see HISTSIZE and HISTFILESIZE in bash(1)
 HISTSIZE=1000
 HISTFILESIZE=2000
-HISTIGNORE='l*:ll*:lll*:llll*:ls*'
+HISTIGNORE='l *:ll *:lll *:llll *:ls *:l:ll:lll:llll:ls:exit'
 
 
 #disable flow control ^S and ^Q
