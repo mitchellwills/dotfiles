@@ -24,7 +24,7 @@ shopt -s histappend
 # for setting history length see HISTSIZE and HISTFILESIZE in bash(1)
 HISTSIZE=1000
 HISTFILESIZE=2000
-HISTIGNORE='l *:ll *:lll *:llll *:ls *:l:ll:lll:llll:ls:exit'
+HISTIGNORE='l:ll:lll:llll:ls:exit'
 
 
 #disable flow control ^S and ^Q
@@ -69,7 +69,7 @@ alias lr='ll -R'		# Recursive ls
 alias ls='ls --color=always -h'
 alias mkdir='mkdir -p'		# recursive directory make
 alias rmtmp='rm -f *~;rm -f .*~'		# delete all file ending in ~ in the current directory
-alias tree='tree -Csu'		# Nice alternative to recursive ls
+alias tree='tree -Chsu'		# Nice alternative to recursive ls
 alias webserver='python -m SimpleHTTPServer'		# Simple web server
 alias what=which
 alias when=date
