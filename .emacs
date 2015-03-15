@@ -25,6 +25,13 @@
 
 (setq auto-mode-alist (cons '("\\.launch$" . xml-mode) auto-mode-alist))
 (setq auto-mode-alist (cons '("\\.bashrc$" . shell-script-mode) auto-mode-alist))
+(add-hook 'latex-mode-hook 'flyspell-mode)
+(add-hook 'tex-mode-hook 'flyspell-mode)
+(add-hook 'flyspell-mode-hook 'flyspell-buffer)
+
+(global-set-key (kbd "<f7>") 'flyspell-buffer)
+
+(add-to-list 'auto-mode-alist '("\\.h\\'" . c++-mode))
 
 (global-set-key (kbd "C-x |") 'split-window-horizontally)
 (global-set-key (kbd "C-x _") 'split-window-vertically)
