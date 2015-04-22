@@ -28,7 +28,7 @@
 	lolaa = !sh -c 'git lola $(git fsck --unreachable --no-reflogs 2>/dev/null | sed -n \"s/^\\w\\w* commit //p\")'
 
 	# from https://git.wiki.kernel.org/index.php/Aliases
-	serve = !git daemon --reuseaddr --verbose  --base-path=. --export-all ./.git
+	serve = !git daemon --reuseaddr --verbose  --base-path=. --export-all --enable=receive-pack --informative-errors
 	unstage = reset HEAD --
 	# pushes a new branch to origin
 	publish = !sh -c 'git push -u origin $(git rev-parse --abbrev-ref HEAD)'
