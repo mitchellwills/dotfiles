@@ -124,6 +124,12 @@ precmd() {
 	PROMPT_EXIT_STATUS="%F{red}!!!!!!!!!! $PROMPT_EXIT_STATUS !!!!!!!!!!%{$reset_color%}"$'\n'
     fi
 
+    if [[ -z $TMUX ]]; then
+	PROMPT_MACHINE_SUFFIX=""
+    else
+	PROMPT_MACHINE_SUFFIX="(tmux)"
+    fi
+
     PROMPT_ASYNC=""
     async-build-prompt &!
 }
@@ -162,7 +168,7 @@ function TRAPUSR2 {
     zle && zle reset-prompt
 }
 
-PROMPT=$'\n$PROMPT_EXIT_STATUS%F{yellow}%n%F{white}@%m %F{blue}[%~]%{$reset_color%}$PROMPT_ASYNC\n%F{cyan}%h %{$reset_color%}%(!.#.$) '
+PROMPT=$'\n$PROMPT_EXIT_STATUS%F{yellow}%n%F{white}@%m$PROMPT_MACHINE_SUFFIX %F{blue}[%~]%{$reset_color%}$PROMPT_ASYNC\n%F{cyan}%h %{$reset_color%}%(!.#.$) '
 
 
 
@@ -231,3 +237,19 @@ function maketar() { tar cvzf "${1%%/}.tar.gz"  "${1%%/}/"; }
 
 # Create a ZIP archive of a file or folder.
 function makezip() { zip -r "${1%%/}.zip" "$1" ; }
+
+
+
+if [[ -z $TMUX ]]; then
+    local tmux_session_lines
+    tmux_session_lines=("${(@f)$(tmux list-sessions 2> /dev/null)}")
+
+    if [[ $tmux_session_lines[1] == '' ]]; then
+	echo "No active tmux sessions"
+    else
+	echo "Active tmux sessions:"
+	for line in $tmux_session_lines; do
+	    print $line
+	done
+    fi
+fi
