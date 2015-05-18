@@ -230,8 +230,6 @@ alias df='df -h'
 alias du='du -h'
 alias grep-rec='find . -type f -print0 | xargs -0 grep'
 
-alias killbg='kill $(jobs -p)'		# kill all background tasks
-
 alias mkdir='mkdir -p'		# recursive directory make
 alias rmtmp='rm -f *~;rm -f .*~'		# delete all file ending in ~ in the current directory
 alias tree='tree -aChsu'		# Nice alternative to recursive ls
