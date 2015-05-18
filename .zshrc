@@ -1,10 +1,14 @@
+TMPPREFIX=/tmp/zsh
+mkdir -p $TMPPREFIX
+
 setopt correct
 setopt autocd
 setopt nomatch
 setopt extendedglob
 
-# Setup emacs key bindings
-bindkey -e
+# Setup key bindings
+bindkey -e # set key binding to emacs mode
+WORDCHARS=${WORDCHARS/\/} # don't consider forward slash part of a word
 
 # Setup history
 HISTFILE=~/.zsh_history
@@ -16,7 +20,6 @@ setopt HIST_IGNORE_SPACE
 
 # Initialize colors
 autoload -U colors && colors
-
 
 
 # Initialize autocompletion
@@ -112,14 +115,18 @@ precmd() {
 	PROMPT_EXIT_STATUS=""
     elif [[ $exitcode -eq 127 ]]
     then
-	PROMPT_EXIT_STATUS=" %K{red}%F{white}%B!!! Command Not Found !!!"
+	PROMPT_EXIT_STATUS="%K{red}%F{white}%B!!! Command Not Found !!!%{$reset_color%}"$'\n'
     elif [[ $exitcode -ge 128 && $exitcode -le (127+${#signals}) ]]
     then
-	PROMPT_EXIT_STATUS=" %K{red}%F{white}%B!!! SIG$signals[$exitcode-127] !!!"
+	PROMPT_EXIT_STATUS="%K{red}%F{white}%B!!! SIG$signals[$exitcode-127] !!!%{$reset_color%}"$'\n'
     else
-	PROMPT_EXIT_STATUS=" %K{red}%F{white}%B!!! Exited: $exitcode !!!"
+	PROMPT_EXIT_STATUS="%K{red}%F{white}%B!!! Exited: $exitcode !!!%{$reset_color%}"$'\n'
     fi
 
+    PROMPT_ASYNC=""
+    async-build-prompt &!
+}
+function async-build-prompt {
     # SCM
     if which git &> /dev/null && [[ -n "$(git rev-parse HEAD 2> /dev/null)" ]]; then
 	git_prompt_vars
@@ -141,9 +148,20 @@ precmd() {
     else
 	PROMPT_SCM=""
     fi
-}
-PROMPT=$'%F{yellow}%n%F{white}@%m %F{blue}[%~]$PROMPT_SCM %F{red}%B%T$PROMPT_EXIT_STATUS%{$reset_color%}\n%F{cyan}%h %{$reset_color%}%(!.#.$) '
 
+    printf "%s" $PROMPT_SCM > ${TMPPREFIX}/prompt-delay.$$
+
+    # Tell shell to update prompt
+    kill -SIGUSR2 $$
+}
+# callback from child process
+function TRAPUSR2 {
+    PROMPT_ASYNC=$(cat "${TMPPREFIX}/prompt-delay.$$")
+    # Redisplay prompt
+    zle && zle reset-prompt
+}
+
+PROMPT=$'\n$PROMPT_EXIT_STATUS%F{yellow}%n%F{white}@%m %F{blue}[%~]%{$reset_color%}$PROMPT_ASYNC\n%F{cyan}%h %{$reset_color%}%(!.#.$) '
 
 
 
