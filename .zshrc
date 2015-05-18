@@ -136,6 +136,32 @@ precmd() {
 	PROMPT_MACHINE_PREFIX="${PROMPT_MACHINE_PREFIX}ssh/"
     fi
 
+    PROMPT_JOBS=""
+    for id in ${(k)jobstates}; do
+	local upstream_re='.+\.\.\.([[:print:]]+)/([^[:space:]]+)'
+	local job_state="?"
+	local job_mark=""
+	local job_pid="????"
+	if [[ "${jobstates[$id]}" =~ '([^:]+):([^:]*):([^=]+)=(.+)' ]]; then
+	    job_state=$match[1]
+	    job_mark=$match[2]
+	    job_pid=$match[3]
+	    job_process_state=$match[4]
+	fi
+	if [[ $job_mark == "" ]]; then
+	    job_mark=" "
+	fi
+	if [[ $job_state == 'running' ]]; then
+	    job_color="%F{green}"
+	elif [[ $job_state == 'suspended' ]]; then
+	    job_color="%F{red}"
+	elif [[ $job_state == 'done' ]]; then
+	    job_color="%F{magenta}"
+	else
+	    job_color="%F{white}"
+	fi
+	PROMPT_JOBS="${PROMPT_JOBS}${job_color}[$id]$job_mark $job_pid $jobtexts[$id]"$'\n'
+    done
     PROMPT_ASYNC=""
     async-build-prompt &!
 }
@@ -174,7 +200,7 @@ function TRAPUSR2 {
     zle && zle reset-prompt
 }
 
-PROMPT=$'\n$PROMPT_EXIT_STATUS%F{yellow}%n%F{white}@$PROMPT_MACHINE_PREFIX%m %F{blue}[%~]%{$reset_color%}$PROMPT_ASYNC\n%F{cyan}%h %{$reset_color%}%(!.#.$) '
+PROMPT=$'\n$PROMPT_EXIT_STATUS$PROMPT_JOBS%F{yellow}%n%F{white}@$PROMPT_MACHINE_PREFIX%m %F{blue}[%~]%{$reset_color%}$PROMPT_ASYNC\n%F{cyan}%h %{$reset_color%}%(!.#.$) '
 
 
 
