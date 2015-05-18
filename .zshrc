@@ -162,6 +162,17 @@ precmd() {
 	fi
 	PROMPT_JOBS="${PROMPT_JOBS}${job_color}[$id]$job_mark $job_pid $jobtexts[$id]"$'\n'
     done
+
+    # Set terminal title
+    case "$TERM" in
+	xterm*|rxvt*)
+	    print -Pn "\e]0;%n@%m: %~\a"
+	    ;;
+	*)
+	    ;;
+    esac
+
+
     PROMPT_ASYNC=""
     async-build-prompt &!
 }
