@@ -124,10 +124,16 @@ precmd() {
 	PROMPT_EXIT_STATUS="%F{red}!!!!!!!!!! $PROMPT_EXIT_STATUS !!!!!!!!!!%{$reset_color%}"$'\n'
     fi
 
-    if [[ -z $TMUX ]]; then
-	PROMPT_MACHINE_SUFFIX=""
-    else
-	PROMPT_MACHINE_SUFFIX="(tmux)"
+    PROMPT_MACHINE_PREFIX=""
+    if [[ $INSIDE_EMACS != '' ]]; then
+	PROMPT_MACHINE_PREFIX="${PROMPT_MACHINE_PREFIX}emacs/"
+    fi
+    if [[ $TMUX != '' ]]; then
+	# slice removes percent from beginning of TMUX_PANE
+	PROMPT_MACHINE_PREFIX="${PROMPT_MACHINE_PREFIX}tmux[${TMUX_PANE[2,-1]}]/"
+    fi
+    if [[ $SSH_CLIENT != '' ]]; then
+	PROMPT_MACHINE_PREFIX="${PROMPT_MACHINE_PREFIX}ssh/"
     fi
 
     PROMPT_ASYNC=""
@@ -168,7 +174,7 @@ function TRAPUSR2 {
     zle && zle reset-prompt
 }
 
-PROMPT=$'\n$PROMPT_EXIT_STATUS%F{yellow}%n%F{white}@%m$PROMPT_MACHINE_SUFFIX %F{blue}[%~]%{$reset_color%}$PROMPT_ASYNC\n%F{cyan}%h %{$reset_color%}%(!.#.$) '
+PROMPT=$'\n$PROMPT_EXIT_STATUS%F{yellow}%n%F{white}@$PROMPT_MACHINE_PREFIX%m %F{blue}[%~]%{$reset_color%}$PROMPT_ASYNC\n%F{cyan}%h %{$reset_color%}%(!.#.$) '
 
 
 
