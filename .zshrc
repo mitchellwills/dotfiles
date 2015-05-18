@@ -113,14 +113,15 @@ precmd() {
     if [[ $exitcode -eq 0 ]]
     then
 	PROMPT_EXIT_STATUS=""
-    elif [[ $exitcode -eq 127 ]]
-    then
-	PROMPT_EXIT_STATUS="%K{red}%F{white}%B!!! Command Not Found !!!%{$reset_color%}"$'\n'
-    elif [[ $exitcode -ge 128 && $exitcode -le (127+${#signals}) ]]
-    then
-	PROMPT_EXIT_STATUS="%K{red}%F{white}%B!!! SIG$signals[$exitcode-127] !!!%{$reset_color%}"$'\n'
     else
-	PROMPT_EXIT_STATUS="%K{red}%F{white}%B!!! Exited: $exitcode !!!%{$reset_color%}"$'\n'
+	if [[ $exitcode -eq 127 ]]; then
+	    PROMPT_EXIT_STATUS="Command Not Found"
+	elif [[ $exitcode -ge 128 && $exitcode -le (127+${#signals}) ]]; then
+	    PROMPT_EXIT_STATUS="SIG$signals[$exitcode-127]"
+	else
+	    PROMPT_EXIT_STATUS="Exited: $exitcode"
+	fi
+	PROMPT_EXIT_STATUS="%F{red}!!!!!!!!!! $PROMPT_EXIT_STATUS !!!!!!!!!!%{$reset_color%}"$'\n'
     fi
 
     PROMPT_ASYNC=""
