@@ -25,6 +25,8 @@ autoload -U colors && colors
 # Initialize autocompletion
 #zstyle :compinstall filename '/home/mitchell/.zshrc'
 autoload -Uz compinit && compinit
+# enables Shift-Tab backwards autocompletion
+bindkey '^[[Z' reverse-menu-complete
 
 # Setup programs
 export EDITOR='emacs -nw'
