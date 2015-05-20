@@ -41,6 +41,7 @@ RIGHT_ARROW_SYMBOL=$'\xe2\x86\x92'
 UP_ARROW_SYMBOL=$'\xe2\x86\x91'
 LEFT_ARROW_SYMBOL=$'\xe2\x86\x90'
 PLUS_MINUS_SYMBOL=$'±'
+LIGHTNING_BOLT_SYMBOL=$'⚡'
 X_SYMBOL="✗"
 CHECK_SYMBOL="✓"
 
@@ -253,7 +254,7 @@ function build_svn_prompt {
 	SCM_HEAD="%F{green}$svn_branch%F{white}:%F{magenta}$svn_revision"
     fi
 
-    PROMPT_SCM="%F{green} |svn $SCM_HEAD $svn_wc_state%F{green}|"
+    PROMPT_SCM="%F{green} |$LIGHTNING_BOLT_SYMBOL $SCM_HEAD $svn_wc_state%F{green}|"
 }
 function async-build-prompt {
     # SCM
