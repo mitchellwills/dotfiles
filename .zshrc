@@ -1,6 +1,9 @@
 TMPPREFIX=/tmp/zsh
 mkdir -p $TMPPREFIX
 
+autoload bashcompinit
+bashcompinit
+
 setopt correct
 setopt autocd
 setopt nomatch
@@ -23,7 +26,6 @@ autoload -U colors && colors
 
 
 # Initialize autocompletion
-#zstyle :compinstall filename '/home/mitchell/.zshrc'
 autoload -Uz compinit && compinit
 # enables Shift-Tab backwards autocompletion
 bindkey '^[[Z' reverse-menu-complete
@@ -122,9 +124,9 @@ precmd() {
 
 function build_git_prompt {
     local git_status_lines
-    git_status_lines=("${(@f)$(git status -bs --porcelain 2> /dev/null)}")
+    IFS=$'\n' git_status_lines=($(git status -bs --porcelain 2> /dev/null))
     local git_stash_list_lines
-    git_stash_list_lines=("${(@f)$(git stash list 2> /dev/null)}")
+    IFS=$'\n' git_stash_list_lines=($(git stash list 2> /dev/null))
 
     local ref=$(git symbolic-ref HEAD 2> /dev/null)
     SCM_BRANCH=${ref#refs/heads/}
@@ -266,7 +268,7 @@ function async-build-prompt {
 	PROMPT_SCM=""
     fi
 
-    printf "%s" $PROMPT_SCM > ${TMPPREFIX}/prompt-delay.$$
+    printf "%s" "$PROMPT_SCM" > ${TMPPREFIX}/prompt-delay.$$
 
     # Tell shell to update prompt
     kill -SIGUSR2 $$
@@ -360,4 +362,10 @@ if [[ -z $TMUX ]]; then
 	    print $line
 	done
     fi
+fi
+
+function tmux-copy() { tmux save-buffer - | DISPLAY=:0 xclip -selection clipboard }
+
+if [ -f ~/.local.zshrc ]; then
+    source ~/.local.zshrc
 fi
