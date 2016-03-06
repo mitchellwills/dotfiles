@@ -24,8 +24,9 @@
 	tree = log --graph --pretty=simple --abbrev-commit --date=relative
 	lol = log --graph --pretty=simple --abbrev-commit --date=relative
 	lola = log --graph --pretty=simple --abbrev-commit --date=relative --all
+	lolb = log --graph --pretty=simple --abbrev-commit --date=relative --branches HEAD
 	# based on https://github.com/mahiro/git-stuff/blob/master/bin/git-log-graph-dump
-	lolaa = !sh -c 'git lola $(git fsck --unreachable --no-reflogs 2>/dev/null | sed -n \"s/^\\w\\w* commit //p\")'
+	lolaa = !sh -c 'git lola $(git fsck --unreachable --no-reflogs 2>/dev/null | sed -n \"s/^\\w\\w* commit //p\") "$@"' --
 
 	# from https://git.wiki.kernel.org/index.php/Aliases
 	serve = !git daemon --reuseaddr --verbose  --base-path=. --export-all --enable=receive-pack --informative-errors
@@ -35,12 +36,5 @@
 	# list all commits that have not yet been pushed to the upstream branch
 	pending = !sh -c 'git lol $(git config branch.$(git name-rev --name-only HEAD).remote)/$(git rev-parse --abbrev-ref --symbolic-full-name $(git config branch.$(git name-rev --name-only HEAD).merge))..HEAD'
 
-[push]
-	default = simple
-
-[user]
-	email = mwills@wpi.edu
-	name = Mitchell Wills
-
-[http]
-	sslVerify = true
+[include]
+    path = ~/.local.gitconfig
