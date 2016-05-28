@@ -73,13 +73,6 @@ precmd() {
     if [[ $INSIDE_EMACS != '' ]]; then
 	PROMPT_MACHINE_PREFIX="${PROMPT_MACHINE_PREFIX}emacs/"
     fi
-    if [[ $TMUX != '' ]]; then
-	# slice removes percent from beginning of TMUX_PANE
-	PROMPT_MACHINE_PREFIX="${PROMPT_MACHINE_PREFIX}tmux[${TMUX_PANE[2,-1]}]/"
-    fi
-    if [[ $SSH_CLIENT != '' ]]; then
-	PROMPT_MACHINE_PREFIX="${PROMPT_MACHINE_PREFIX}ssh/"
-    fi
 
     PROMPT_JOBS=""
     for id in ${(k)jobstates}; do
