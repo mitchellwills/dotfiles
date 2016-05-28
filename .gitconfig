@@ -19,6 +19,7 @@
 	ci = commit
 	cia = commit -a
 	ciaa = commit -a --amend
+	detach = !sh -c 'git checkout $(git rev-parse HEAD)'
 
 
 	tree = log --graph --pretty=simple --abbrev-commit --date=relative
@@ -38,3 +39,6 @@
 
 [include]
     path = ~/.local.gitconfig
+
+[rerere]
+	enabled = true
