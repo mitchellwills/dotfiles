@@ -46,6 +46,8 @@ PLUS_MINUS_SYMBOL=$'±'
 LIGHTNING_BOLT_SYMBOL=$'⚡'
 X_SYMBOL="✗"
 CHECK_SYMBOL="✓"
+UP_TRIANGLE_FILLED_SYMBOL="▲"
+UP_TRIANGLE_SYMBOL="△"
 
 SCM_DIRTY_SYMBOL="%F{red}$X_SYMBOL"
 SCM_CLEAN_SYMBOL="%F{green}$CHECK_SYMBOL"
@@ -120,8 +122,6 @@ precmd() {
     async-build-prompt &!
 }
 
-
-
 function build_git_prompt {
     local git_status_lines
     IFS=$'\n' git_status_lines=($(git status -bs --porcelain 2> /dev/null))
@@ -130,7 +130,17 @@ function build_git_prompt {
 
     local ref=$(git symbolic-ref HEAD 2> /dev/null)
     SCM_BRANCH=${ref#refs/heads/}
-    SCM_CHANGE=$(git rev-parse --short HEAD 2>/dev/null)
+    SCM_CHANGE=$(git rev-parse HEAD 2>/dev/null)
+    SCM_CHANGE_SHORT=$(git rev-parse --short HEAD 2>/dev/null)
+
+    # Check for publish branches
+    SCM_PUBLISHED_CHANGE=""
+    if [ -n "$SCM_BRANCH" ]; then
+      SCM_PUBLISHED_CHANGE=$(git rev-parse --verify --quiet "refs/exported/$SCM_BRANCH^0" 2>/dev/null)
+      if [[ -z "$SCM_PUBLISHED_CHANGE" ]]; then
+        SCM_PUBLISHED_CHANGE=$(git rev-parse --verify --quiet "refs/published/$SCM_BRANCH^0" 2>/dev/null)
+      fi
+    fi
 
     SCM_GIT_AHEAD=''
     SCM_GIT_BEHIND=''
@@ -167,7 +177,7 @@ function build_git_prompt {
     done
 
     if [ -z $SCM_BRANCH ]; then
-	SCM_HEAD="%F{green}$SCM_CHANGE"
+	SCM_HEAD="%F{green}$SCM_CHANGE_SHORT"
     else
 	SCM_HEAD="%F{green}$SCM_BRANCH"
 	if [[ $SCM_GIT_UPSTREAM_REMOTE == "" ]]; then
@@ -177,7 +187,7 @@ function build_git_prompt {
 	else
 	    SCM_HEAD="$SCM_HEAD%F{cyan}($SCM_GIT_UPSTREAM_REMOTE/$SCM_GIT_UPSTREAM_BRANCH)"
 	fi
-	SCM_HEAD="$SCM_HEAD%F{white}:%F{magenta}$SCM_CHANGE"
+	SCM_HEAD="$SCM_HEAD%F{white}:%F{magenta}$SCM_CHANGE_SHORT"
     fi
 
     local git_wc_state=""
@@ -199,8 +209,18 @@ function build_git_prompt {
     local git_stash_state=""
     [[ $SCM_GIT_STASH_COUNT -gt 0 ]] && git_stash_state=" %F{yellow}(stash: $SCM_GIT_STASH_COUNT)"
 
-    PROMPT_SCM="%F{green} |$PLUS_MINUS_SYMBOL $SCM_HEAD $git_wc_state$git_remote_state$git_stash_state%F{green}|"
+    local git_publish_state=""
+    if [ -n "$SCM_PUBLISHED_CHANGE" ]; then
+      if [[ "$SCM_CHANGE" == "$SCM_PUBLISHED_CHANGE" ]]; then
+        git_publish_state=" %F{green}$UP_TRIANGLE_FILLED_SYMBOL"
+      else
+        git_publish_state=" %F{red}$UP_TRIANGLE_SYMBOL"
+      fi
+    fi
+
+    PROMPT_SCM="%F{green} |$PLUS_MINUS_SYMBOL $SCM_HEAD $git_wc_state$git_remote_state$git_stash_state$git_publish_state%F{green}|"
 }
+
 function build_svn_prompt {
     local svn_info_lines
     svn_info_lines=("${(@f)$(svn info 2> /dev/null)}")
@@ -258,6 +278,7 @@ function build_svn_prompt {
 
     PROMPT_SCM="%F{green} |$LIGHTNING_BOLT_SYMBOL $SCM_HEAD $svn_wc_state%F{green}|"
 }
+
 function async-build-prompt {
     # SCM
     if which git &> /dev/null && [[ -n "$(git rev-parse HEAD 2> /dev/null)" ]]; then
@@ -273,6 +294,7 @@ function async-build-prompt {
     # Tell shell to update prompt
     kill -SIGUSR2 $$
 }
+
 # callback from child process
 function TRAPUSR2 {
     PROMPT_ASYNC=$(cat "${TMPPREFIX}/prompt-delay.$$")
