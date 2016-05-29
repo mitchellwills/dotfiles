@@ -110,10 +110,14 @@ precmd() {
 	    ;;
     esac
 
+    PROMPT_WD=${PWD/#$HOME/'~'}
+
+    local_precmd
 
     PROMPT_ASYNC=""
     async-build-prompt &!
 }
+function local_precmd {} # to be overridden by local script
 
 function build_git_prompt {
     local git_status_lines
@@ -295,7 +299,7 @@ function TRAPUSR2 {
     zle && zle reset-prompt
 }
 
-PROMPT=$'\n$PROMPT_EXIT_STATUS$PROMPT_JOBS%F{yellow}%n%F{white}@$PROMPT_MACHINE_PREFIX%m %F{blue}[%~]%{$reset_color%}$PROMPT_ASYNC\n%F{cyan}%h %{$reset_color%}%(!.#.$) '
+PROMPT=$'\n$PROMPT_EXIT_STATUS$PROMPT_JOBS%F{yellow}%n%F{white}@$PROMPT_MACHINE_PREFIX%m %F{blue}[$PROMPT_WD]%{$reset_color%}$PROMPT_ASYNC\n%F{cyan}%h %{$reset_color%}%(!.#.$) '
 
 
 
