@@ -125,6 +125,7 @@ function build_git_prompt {
     local git_stash_list_lines
     IFS=$'\n' git_stash_list_lines=($(git stash list 2> /dev/null))
 
+    local SCM_GIT_DIR=$(git rev-parse --git-dir 2>/dev/null)
     local ref=$(git symbolic-ref HEAD 2> /dev/null)
     SCM_BRANCH=${ref#refs/heads/}
     SCM_CHANGE=$(git rev-parse HEAD 2>/dev/null)
@@ -198,6 +199,13 @@ function build_git_prompt {
 	git_wc_state="$SCM_CLEAN_SYMBOL"
     fi
 
+    local git_mode=""
+    if [[ -e "$SCM_GIT_DIR/MERGE_HEAD" ]]; then
+      git_mode=" $fg_bold[red]MERGE"
+    elif [[ -e "$SCM_GIT_DIR/rebase" || -e "$SCM_GIT_DIR/rebase-apply" || -e "$SCM_GIT_DIR/rebase-merge" ]]; then
+      git_mode=" $fg_bold[red]REBASE"
+    fi
+
     local git_remote_state=""
     [[ $SCM_GIT_BEHIND -gt 0 ]] && git_remote_state="$git_remote_state%F{red} $DOWN_ARROW_SYMBOL$SCM_GIT_BEHIND"
     [[ $SCM_GIT_AHEAD -gt 0 && $SCM_GIT_BEHIND -eq 0 ]] && git_remote_state="$git_remote_state%F{cyan}"
@@ -215,7 +223,7 @@ function build_git_prompt {
       fi
     fi
 
-    PROMPT_SCM="%F{green} |$PLUS_MINUS_SYMBOL $SCM_HEAD $git_wc_state$git_remote_state$git_stash_state$git_publish_state%F{green}|"
+    PROMPT_SCM="%F{green} |$PLUS_MINUS_SYMBOL $SCM_HEAD $git_wc_state$git_remote_state$git_stash_state$git_publish_state$git_mode%F{green}|"
 }
 
 function build_svn_prompt {
