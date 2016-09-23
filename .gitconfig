@@ -40,7 +40,5 @@
 [include]
     path = ~/.local.gitconfig
 
-[rerere]
-	enabled = true
 [core]
 	pager = less -+$LESS -R
