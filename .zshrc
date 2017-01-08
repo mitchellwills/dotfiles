@@ -392,6 +392,7 @@ if [[ -z $TMUX ]]; then
 fi
 
 function tmux-copy() { tmux save-buffer - | DISPLAY=:0 xclip -selection clipboard }
+alias tmc=tmux-copy
 
 if [ -f ~/.local.zshrc ]; then
     source ~/.local.zshrc
