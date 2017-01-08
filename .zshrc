@@ -1,3 +1,5 @@
+osname=`uname`
+
 TMPPREFIX=/tmp/zsh
 mkdir -p $TMPPREFIX
 
@@ -327,7 +329,12 @@ alias ll='l -Al'
 alias lll='ll -a'
 alias llll='lll -i'
 alias lr='ll -R'		# Recursive ls
-alias ls='ls -h -F --color=auto'
+
+if [[ $osname == 'Darwin' ]]; then
+    alias ls='ls -h -F -G'
+else
+    alias ls='ls -h -F --color=auto'
+fi
 
 alias grep='grep --color=auto'
 alias egrep='egrep --color=auto'
