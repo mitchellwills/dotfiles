@@ -116,28 +116,27 @@ precmd() {
 
     local_precmd
 
-    PROMPT_ASYNC=""
+    PROMPT_ASYNC="$PROMPT_SCM"
     async-build-prompt &!
 }
 function local_precmd {} # to be overridden by local script
 function local_async_build_scm_prompt {return 1} # to be overridden by local script
 
 function async-build-prompt {
-    # SCM
-    if which git &> /dev/null && [[ -n "$(git rev-parse HEAD 2> /dev/null)" ]]; then
-	build_git_prompt
-    elif which svn &> /dev/null && [[ -n "$(svn info 2> /dev/null)" ]]; then
-	build_svn_prompt
-    elif local_async_build_scm_prompt; then
-	# check if expected to build the prompt if success
-    else
-	PROMPT_SCM=""
-    fi
+  # SCM
+  PROMPT_SCM=""
+  if which git &> /dev/null && [[ -n "$(git rev-parse HEAD 2> /dev/null)" ]]; then
+    build_git_prompt
+  elif which svn &> /dev/null && [[ -n "$(svn info 2> /dev/null)" ]]; then
+    build_svn_prompt
+  elif local_async_build_scm_prompt; then
+    # check if expected to build the prompt if success
+  fi
 
-    printf "%s" "$PROMPT_SCM" > ${TMPPREFIX}/prompt-delay.$$
+  printf "%s" "$PROMPT_SCM" > ${TMPPREFIX}/prompt-delay.$$
 
-    # Tell shell to update prompt
-    kill -SIGUSR2 $$
+  # Tell shell to update prompt
+  kill -SIGUSR2 $$
 }
 
 # callback from child process
