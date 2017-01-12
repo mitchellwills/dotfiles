@@ -120,7 +120,7 @@ precmd() {
     async-build-prompt &!
 }
 function local_precmd {} # to be overridden by local script
-function local_async_build_scm_prompt {return 1} # to be overridden by local script
+function local_async_build_scm_prompt { return 1 } # to be overridden by local script
 
 function async-build-prompt {
   # SCM
