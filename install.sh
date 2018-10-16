@@ -8,3 +8,5 @@ ln -s -b $ROOT_DIR/.gitconfig ~/.gitconfig
 ln -s -b $ROOT_DIR/.dircolors ~/.dircolors
 ln -s -b $ROOT_DIR/.tmux.conf ~/.tmux.conf
 ln -s -b $ROOT_DIR/.zshrc ~/.zshrc
+mkdir -p ~/.config/dunst
+ln -s -b $ROOT_DIR/dunstrc ~/.config/dunst/dunstrc

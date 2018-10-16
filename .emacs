@@ -12,6 +12,7 @@
  ;; If there is more than one, they won't work right.
  '(company-dabbrev-downcase nil)
  '(inhibit-startup-screen t)
+ '(package-selected-packages (quote (## tide multiple-cursors expand-region)))
  '(uniquify-buffer-name-style (quote post-forward) nil (uniquify))
  '(vc-follow-symlinks t))
 (custom-set-faces
@@ -46,14 +47,6 @@
 (add-to-list 'auto-mode-alist '("\\.zshrc$" . shell-script-mode))
 (add-to-list 'auto-mode-alist '("\\.h\\'" . c++-mode))
 (add-to-list 'auto-mode-alist '("\\.ng\\'" . html-mode))
-
-(add-hook 'markdown-mode-hook 'flyspell-mode)
-(add-hook 'latex-mode-hook 'flyspell-mode)
-(add-hook 'tex-mode-hook 'flyspell-mode)
-(add-hook 'text-mode-hook 'flyspell-mode)
-(add-hook 'prog-mode-hook 'flyspell-prog-mode)
-
-(global-set-key (kbd "<f7>") 'flyspell-buffer)
 
 (setq-default indent-tabs-mode nil)
 

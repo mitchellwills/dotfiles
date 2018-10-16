@@ -114,6 +114,7 @@ precmd() {
 
     PROMPT_WD=${PWD/#$HOME/'~'}
 
+    PROMPT_SCM=""
     local_precmd
 
     PROMPT_ASYNC="$PROMPT_SCM"
