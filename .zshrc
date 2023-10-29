@@ -59,57 +59,57 @@ precmd() {
     local exitcode=$?
     if [[ $exitcode -eq 0 ]]
     then
-	PROMPT_EXIT_STATUS=""
+        PROMPT_EXIT_STATUS=""
     else
-	if [[ $exitcode -eq 127 ]]; then
-	    PROMPT_EXIT_STATUS="Command Not Found"
-	elif [[ $exitcode -ge 128 && $exitcode -le (127+${#signals}) ]]; then
-	    PROMPT_EXIT_STATUS="SIG$signals[$exitcode-127]"
-	else
-	    PROMPT_EXIT_STATUS="Exited: $exitcode"
-	fi
-	PROMPT_EXIT_STATUS="%F{red}!!!!!!!!!! $PROMPT_EXIT_STATUS !!!!!!!!!!%{$reset_color%}"$'\n'
+        if [[ $exitcode -eq 127 ]]; then
+            PROMPT_EXIT_STATUS="Command Not Found"
+        elif [[ $exitcode -ge 128 && $exitcode -le (127+${#signals}) ]]; then
+            PROMPT_EXIT_STATUS="SIG$signals[$exitcode-127]"
+        else
+            PROMPT_EXIT_STATUS="Exited: $exitcode"
+        fi
+        PROMPT_EXIT_STATUS="%F{red}!!!!!!!!!! $PROMPT_EXIT_STATUS !!!!!!!!!!%{$reset_color%}"$'\n'
     fi
 
     PROMPT_MACHINE_PREFIX=""
     if [[ $INSIDE_EMACS != '' ]]; then
-	PROMPT_MACHINE_PREFIX="${PROMPT_MACHINE_PREFIX}emacs/"
+        PROMPT_MACHINE_PREFIX="${PROMPT_MACHINE_PREFIX}emacs/"
     fi
 
     PROMPT_JOBS=""
     for id in ${(k)jobstates}; do
-	local upstream_re='.+\.\.\.([[:print:]]+)/([^[:space:]]+)'
-	local job_state="?"
-	local job_mark=""
-	local job_pid="????"
-	if [[ "${jobstates[$id]}" =~ '([^:]+):([^:]*):([^=]+)=(.+)' ]]; then
-	    job_state=$match[1]
-	    job_mark=$match[2]
-	    job_pid=$match[3]
-	    job_process_state=$match[4]
-	fi
-	if [[ $job_mark == "" ]]; then
-	    job_mark=" "
-	fi
-	if [[ $job_state == 'running' ]]; then
-	    job_color="%F{green}"
-	elif [[ $job_state == 'suspended' ]]; then
-	    job_color="%F{red}"
-	elif [[ $job_state == 'done' ]]; then
-	    job_color="%F{magenta}"
-	else
-	    job_color="%F{white}"
-	fi
-	PROMPT_JOBS="${PROMPT_JOBS}${job_color}[$id]$job_mark $job_pid $jobtexts[$id]"$'\n'
+        local upstream_re='.+\.\.\.([[:print:]]+)/([^[:space:]]+)'
+        local job_state="?"
+        local job_mark=""
+        local job_pid="????"
+        if [[ "${jobstates[$id]}" =~ '([^:]+):([^:]*):([^=]+)=(.+)' ]]; then
+            job_state=$match[1]
+            job_mark=$match[2]
+            job_pid=$match[3]
+            job_process_state=$match[4]
+        fi
+        if [[ $job_mark == "" ]]; then
+            job_mark=" "
+        fi
+        if [[ $job_state == 'running' ]]; then
+            job_color="%F{green}"
+        elif [[ $job_state == 'suspended' ]]; then
+            job_color="%F{red}"
+        elif [[ $job_state == 'done' ]]; then
+            job_color="%F{magenta}"
+        else
+            job_color="%F{white}"
+        fi
+        PROMPT_JOBS="${PROMPT_JOBS}${job_color}[$id]$job_mark $job_pid $jobtexts[$id]"$'\n'
     done
 
     # Set terminal title
     case "$TERM" in
-	xterm*|rxvt*)
-	    print -Pn "\e]0;%n@%m: %~\a"
-	    ;;
-	*)
-	    ;;
+        xterm*|rxvt*)
+            print -Pn "\e]0;%n@%m: %~\a"
+            ;;
+        *)
+            ;;
     esac
 
     PROMPT_WD=${PWD/#$HOME/'~'}

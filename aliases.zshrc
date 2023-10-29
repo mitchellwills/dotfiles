@@ -1,7 +1,7 @@
-alias emacs='emacs -nw'		# make emacs only run in the terminal
+alias emacs='emacs -nw'         # make emacs only run in the terminal
 
 # Directory aliases
-alias -- -='cd -'		# go to the previous directory
+alias -- -='cd -'               # go to the previous directory
 alias -g ...='../..'
 alias -g ....='../../..'
 alias -g .....='../../../..'
@@ -12,7 +12,7 @@ alias less='less -R'
 alias ll='l -Al'
 alias lll='ll -a'
 alias llll='lll -i'
-alias lr='ll -R'		# Recursive ls
+alias lr='ll -R'                # Recursive ls
 
 if [[ $osname == 'Darwin' ]]; then
     alias ls='ls -h -F -G'
@@ -28,10 +28,10 @@ alias df='df -h'
 alias du='du -h'
 alias grep-rec='find . -type f -print0 | xargs -0 grep'
 
-alias mkdir='mkdir -p'		# recursive directory make
-alias rmtmp='rm -f *~;rm -f .*~'		# delete all file ending in ~ in the current directory
-alias tree='tree -aChsu'		# Nice alternative to recursive ls
-alias webserver='python -m SimpleHTTPServer'		# Simple web server
+alias mkdir='mkdir -p'          # recursive directory make
+alias rmtmp='rm -f *~;rm -f .*~'                # delete all file ending in ~ in the current directory
+alias tree='tree -aChsu'                # Nice alternative to recursive ls
+alias webserver='python -m SimpleHTTPServer'            # Simple web server
 alias what=which
 alias when=date
 alias where=which
@@ -73,12 +73,12 @@ if [[ -z $TMUX ]]; then
     tmux_session_lines=("${(@f)$(tmux list-sessions 2> /dev/null)}")
 
     if [[ $tmux_session_lines[1] == '' ]]; then
-	echo "No active tmux sessions"
+        echo "No active tmux sessions"
     else
-	echo "Active tmux sessions:"
-	for line in $tmux_session_lines; do
-	    print $line
-	done
+        echo "Active tmux sessions:"
+        for line in $tmux_session_lines; do
+            print $line
+        done
     fi
 fi
 

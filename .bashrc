@@ -44,7 +44,7 @@ export EDITOR='emacs -nw'
 export PAGER=less
 
 ##10-aliases
-alias -- -='cd -'		# go to the previous directory
+alias -- -='cd -' # go to the previous directory
 alias ~='cd'
 alias ..='cd ..'
 alias ...='cd ../..'
@@ -54,23 +54,23 @@ alias df='df -h'
 alias du='du -h'
 alias e=$EDITOR
 alias egrep='egrep --color=always'
-alias emacs='emacs -nw'		# make emacs only run in the terminal
+alias emacs='emacs -nw' # make emacs only run in the terminal
 alias fgrep='fgrep --color=always'
 alias g='git'
 alias grep='grep --color=always'
 alias grep-rec='find . -type f -print0 | xargs -0 grep'
-alias killbg='kill $(jobs -p)'		# kill all background tasks
+alias killbg='kill $(jobs -p)' # kill all background tasks
 alias l='ls -F'
 alias less='less -R'
 alias ll='l -Al'
 alias lll='ll -a'
 alias llll='lll -i'
-alias lr='ll -R'		# Recursive ls
+alias lr='ll -R' # Recursive ls
 alias ls='ls --color=always -h'
-alias mkdir='mkdir -p'		# recursive directory make
-alias rmtmp='rm -f *~;rm -f .*~'		# delete all file ending in ~ in the current directory
-alias tree='tree -aChsu'		# Nice alternative to recursive ls
-alias webserver='python -m SimpleHTTPServer'		# Simple web server
+alias mkdir='mkdir -p' # recursive directory make
+alias rmtmp='rm -f *~;rm -f .*~' # delete all file ending in ~ in the current directory
+alias tree='tree -aChsu' # Nice alternative to recursive ls
+alias webserver='python -m SimpleHTTPServer' # Simple web server
 alias what=which
 alias when=date
 alias where=which

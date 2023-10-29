@@ -32,50 +32,50 @@ function build_git_prompt {
     [[ "${git_status_lines[1]}" =~ ${upstream_re} ]] && SCM_GIT_UPSTREAM_REMOTE="${match[1]}" && SCM_GIT_UPSTREAM_BRANCH="${match[2]}"
 
     if [[ $git_stash_list_lines[1] == '' ]]; then
-	SCM_GIT_STASH_COUNT=0
+        SCM_GIT_STASH_COUNT=0
     else
-	SCM_GIT_STASH_COUNT=$#git_stash_list_lines
+        SCM_GIT_STASH_COUNT=$#git_stash_list_lines
     fi
 
     SCM_GIT_STAGED_COUNT=0
     SCM_GIT_UNSTAGED_COUNT=0
     SCM_GIT_UNTRACKED_COUNT=0
     for l in ${git_status_lines[2,-1]}; do
-	if [[ $l[1,2] = '??' ]]; then
-	    ((++SCM_GIT_UNTRACKED_COUNT))
-	else
-	    if [[ $l[1] != ' ' ]]; then
-      		((++SCM_GIT_STAGED_COUNT))
-	    fi
-	    if [[ $l[2] != ' ' ]]; then
-      		((++SCM_GIT_UNSTAGED_COUNT))
-	    fi
-	fi
+        if [[ $l[1,2] = '??' ]]; then
+            ((++SCM_GIT_UNTRACKED_COUNT))
+        else
+            if [[ $l[1] != ' ' ]]; then
+                ((++SCM_GIT_STAGED_COUNT))
+            fi
+            if [[ $l[2] != ' ' ]]; then
+                ((++SCM_GIT_UNSTAGED_COUNT))
+            fi
+        fi
     done
 
     if [ -z $SCM_BRANCH ]; then
-	SCM_HEAD="%F{green}$SCM_CHANGE_SHORT"
+        SCM_HEAD="%F{green}$SCM_CHANGE_SHORT"
     else
-	SCM_HEAD="%F{green}$SCM_BRANCH"
-	if [[ $SCM_GIT_UPSTREAM_REMOTE == "" ]]; then
-	    SCM_HEAD="$SCM_HEAD%F{cyan}(~)"
-	elif [[ "$SCM_GIT_UPSTREAM_BRANCH" == "$SCM_BRANCH" ]]; then
-	    SCM_HEAD="$SCM_HEAD%F{cyan}($SCM_GIT_UPSTREAM_REMOTE)"
-	else
-	    SCM_HEAD="$SCM_HEAD%F{cyan}($SCM_GIT_UPSTREAM_REMOTE/$SCM_GIT_UPSTREAM_BRANCH)"
-	fi
-	SCM_HEAD="$SCM_HEAD%F{white}:%F{magenta}$SCM_CHANGE_SHORT"
+        SCM_HEAD="%F{green}$SCM_BRANCH"
+        if [[ $SCM_GIT_UPSTREAM_REMOTE == "" ]]; then
+            SCM_HEAD="$SCM_HEAD%F{cyan}(~)"
+        elif [[ "$SCM_GIT_UPSTREAM_BRANCH" == "$SCM_BRANCH" ]]; then
+            SCM_HEAD="$SCM_HEAD%F{cyan}($SCM_GIT_UPSTREAM_REMOTE)"
+        else
+            SCM_HEAD="$SCM_HEAD%F{cyan}($SCM_GIT_UPSTREAM_REMOTE/$SCM_GIT_UPSTREAM_BRANCH)"
+        fi
+        SCM_HEAD="$SCM_HEAD%F{white}:%F{magenta}$SCM_CHANGE_SHORT"
     fi
 
     local git_wc_state=""
     if [[ $SCM_GIT_STAGED_COUNT -gt 0 || $SCM_GIT_UNSTAGED_COUNT -gt 0 || $SCM_GIT_UNTRACKED_COUNT -gt 0 ]]; then
-	git_wc_state="%F{red}("
-	[[ $SCM_GIT_STAGED_COUNT -gt 0 ]] && git_wc_state="$git_wc_state%F{green}+"
-	[[ $SCM_GIT_UNSTAGED_COUNT -gt 0 ]] && git_wc_state="$git_wc_state%F{red}*"
-	[[ $SCM_GIT_UNTRACKED_COUNT -gt 0 ]] && git_wc_state="$git_wc_state%F{cyan}?"
-	git_wc_state="$git_wc_state%F{red})"
+        git_wc_state="%F{red}("
+        [[ $SCM_GIT_STAGED_COUNT -gt 0 ]] && git_wc_state="$git_wc_state%F{green}+"
+        [[ $SCM_GIT_UNSTAGED_COUNT -gt 0 ]] && git_wc_state="$git_wc_state%F{red}*"
+        [[ $SCM_GIT_UNTRACKED_COUNT -gt 0 ]] && git_wc_state="$git_wc_state%F{cyan}?"
+        git_wc_state="$git_wc_state%F{red})"
     else
-	git_wc_state="$SCM_CLEAN_SYMBOL"
+        git_wc_state="$SCM_CLEAN_SYMBOL"
     fi
 
     local git_mode=""
