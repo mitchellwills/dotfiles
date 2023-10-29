@@ -9,21 +9,10 @@
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
- '(company-dabbrev-downcase nil)
  '(inhibit-startup-screen t)
- '(package-selected-packages (quote (## tide multiple-cursors expand-region)))
+ '(package-selected-packages (quote (## multiple-cursors expand-region)))
  '(uniquify-buffer-name-style (quote post-forward) nil (uniquify))
  '(vc-follow-symlinks t))
-(custom-set-faces
- ;; custom-set-faces was added by Custom.
- ;; If you edit it by hand, you could mess it up, so be careful.
- ;; Your init file should contain only one such instance.
- ;; If there is more than one, they won't work right.
- '(company-scrollbar-bg ((t (:background "#191919"))))
- '(company-scrollbar-fg ((t (:background "#0c0c0c"))))
- '(company-tooltip ((t (:inherit default :background "#050505"))))
- '(company-tooltip-common ((t (:inherit font-lock-constant-face))))
- '(company-tooltip-selection ((t (:inherit font-lock-function-name-face)))))
 
 (setq backup-directory-alist `(("." . "~/.saves")))
 
@@ -47,13 +36,7 @@
 (add-to-list 'auto-mode-alist '("\\.h\\'" . c++-mode))
 (add-to-list 'auto-mode-alist '("\\.ng\\'" . html-mode))
 
-(setq-default indent-tabs-mode nil)
-
-;; aligns annotation to the right hand side
-(setq company-tooltip-align-annotations t)
-
-(add-hook 'after-init-hook 'global-company-mode)
-(setq company-idle-delay 0.05)
+(setq-default indent-tabs-mode nil) ; spaces only
 
 (if (file-exists-p "~/\.local\.emacs")
     (load-file "~/.local.emacs"))
