@@ -52,11 +52,9 @@ alias ....='cd ../../..'
 alias .....='cd ../../../..'
 alias df='df -h'
 alias du='du -h'
-alias e=$EDITOR
 alias egrep='egrep --color=always'
 alias emacs='emacs -nw' # make emacs only run in the terminal
 alias fgrep='fgrep --color=always'
-alias g='git'
 alias grep='grep --color=always'
 alias grep-rec='find . -type f -print0 | xargs -0 grep'
 alias killbg='kill $(jobs -p)' # kill all background tasks
@@ -71,20 +69,6 @@ alias mkdir='mkdir -p' # recursive directory make
 alias rmtmp='rm -f *~;rm -f .*~' # delete all file ending in ~ in the current directory
 alias tree='tree -aChsu' # Nice alternative to recursive ls
 alias webserver='python3 -m http.server' # Simple web server
-alias what=which
-alias when=date
-alias where=which
-alias which='type -a'
-
-##11-reload.bashrc
-function dotfiles(){
-(
-  cd ~/.dotfiles
-  git pull
-  ./install.py --no-install
-  source ~/.bashrc
-)
-}
 
 ##50-colors.bashrc
 

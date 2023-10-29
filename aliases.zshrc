@@ -32,11 +32,6 @@ alias mkdir='mkdir -p'          # recursive directory make
 alias rmtmp='rm -f *~;rm -f .*~'                # delete all file ending in ~ in the current directory
 alias tree='tree -aChsu'                # Nice alternative to recursive ls
 alias webserver='python3 -m http.server'            # Simple web server
-alias what=which
-alias when=date
-alias where=which
-alias which='type -a'
-
 
 function extract()      # Handy Extract Program
 {
@@ -81,6 +76,3 @@ if [[ -z $TMUX ]]; then
         done
     fi
 fi
-
-function tmux-copy() { tmux save-buffer - | DISPLAY=:0 xclip -selection clipboard }
-alias tmc=tmux-copy
