@@ -26,7 +26,7 @@ alias fgrep='fgrep --color=auto'
 
 alias df='df -h'
 alias du='du -h'
-alias grep-rec='find . -type f -print0 | xargs -0 grep'
+alias grep-rec='find -L . -type f -print0 | xargs -0 grep'
 
 alias mkdir='mkdir -p'          # recursive directory make
 alias rmtmp='rm -f *~;rm -f .*~'                # delete all file ending in ~ in the current directory
