@@ -149,6 +149,8 @@ function TRAPUSR2 {
 
 PROMPT=$'\n$PROMPT_EXIT_STATUS$PROMPT_JOBS%F{yellow}%n%F{white}@$PROMPT_MACHINE_PREFIX%m %F{blue}[$PROMPT_WD]%{$reset_color%}$PROMPT_ASYNC\n%F{cyan}%h %{$reset_color%}%(!.#.$) '
 
+source /usr/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
+
 source ~/.dotfiles/aliases.zshrc
 source ~/.dotfiles/git.zshrc
 source ~/.dotfiles/svn.zshrc
