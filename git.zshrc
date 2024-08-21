@@ -102,5 +102,5 @@ function build_git_prompt {
       fi
     fi
 
-    PROMPT_SCM="%F{green} |$PLUS_MINUS_SYMBOL $SCM_HEAD $git_wc_state$git_remote_state$git_stash_state$git_publish_state$git_mode%F{green}|"
+    PROMPT_SCM="%F{green} |󰊢  $SCM_HEAD $git_wc_state$git_remote_state$git_stash_state$git_publish_state$git_mode%F{green}|"
 }
