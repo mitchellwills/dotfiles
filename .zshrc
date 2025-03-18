@@ -35,6 +35,7 @@ bindkey '^[[Z' reverse-menu-complete
 # Setup programs
 export EDITOR='emacs -nw'
 export PAGER=less
+export LESS=FRX
 
 setopt PROMPT_SUBST
 
