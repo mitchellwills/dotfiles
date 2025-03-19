@@ -162,6 +162,7 @@ source /usr/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
 source ~/.dotfiles/aliases.zshrc
 source ~/.dotfiles/git.zshrc
 source ~/.dotfiles/svn.zshrc
+source ~/.dotfiles/jj.zshrc
 
 if [ -f ~/.local.zshrc ]; then
     source ~/.local.zshrc
