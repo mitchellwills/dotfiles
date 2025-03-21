@@ -118,22 +118,29 @@ precmd() {
     PROMPT_SCM=""
     local_precmd
 
+    # fill in the bits of prompt that can be done very quickly (e.g. from cwd)
+    for fn in "${PROMPT_SCM_HANDLERS[@]}"; do
+      if $fn 'fast'; then
+        break
+      fi
+    done
+
     PROMPT_ASYNC="$PROMPT_SCM"
     async-build-prompt &!
 }
 function local_precmd {} # to be overridden by local script
-function local_async_build_scm_prompt { return 1 } # to be overridden by local script
+
+unset PROMPT_SCM_HANDLERS
+PROMPT_SCM_HANDLERS=()
 
 function async-build-prompt {
   # SCM
   PROMPT_SCM=""
-  if which git &> /dev/null && [[ -n "$(git rev-parse HEAD 2> /dev/null)" ]]; then
-    build_git_prompt
-  elif which svn &> /dev/null && [[ -n "$(svn info 2> /dev/null)" ]]; then
-    build_svn_prompt
-  elif local_async_build_scm_prompt; then
-    # check if expected to build the prompt if success
-  fi
+  for fn in "${PROMPT_SCM_HANDLERS[@]}"; do
+    if $fn; then
+      break
+    fi
+  done
 
   printf "%s" "$PROMPT_SCM" > ${TMPPREFIX}/prompt-delay.$$
 

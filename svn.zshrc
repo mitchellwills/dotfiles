@@ -1,6 +1,15 @@
 function build_svn_prompt {
+    # don't support fast prompt generation
+    if [[ $1 == 'fast' ]]; then return 1; fi
+
+    if !which svn &> /dev/null; then return 1; fi
+
     local svn_info_lines
     svn_info_lines=("${(@f)$(svn info 2> /dev/null)}")
+
+    if [[ -z "$svn_info_lines" ]]; then
+        return 1
+    fi
 
     local svn_status_lines
     svn_status_lines=("${(@f)$(svn status 2> /dev/null)}")
@@ -55,3 +64,4 @@ function build_svn_prompt {
 
     PROMPT_SCM="%F{green} |$LIGHTNING_BOLT_SYMBOL $SCM_HEAD $svn_wc_state%F{green}|"
 }
+PROMPT_SCM_HANDLERS+=(build_svn_prompt)

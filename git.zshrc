@@ -1,4 +1,16 @@
 function build_git_prompt {
+    if !which git &> /dev/null; then return 1; fi
+
+    SCM_CHANGE=$(git rev-parse HEAD 2>/dev/null)
+    if [[ -z "$SCM_CHANGE" ]]; then
+        return 1
+    fi
+
+    if [[ $1 == 'fast' ]]; then
+      PROMPT_SCM="%F{green} |󰊢 |"
+      return
+    fi
+
     local git_status_lines
     IFS=$'\n' git_status_lines=($(git status -bs --porcelain 2> /dev/null))
     local git_stash_list_lines
@@ -7,7 +19,6 @@ function build_git_prompt {
     local SCM_GIT_DIR=$(git rev-parse --git-dir 2>/dev/null)
     local ref=$(git symbolic-ref HEAD 2> /dev/null)
     SCM_BRANCH=${ref#refs/heads/}
-    SCM_CHANGE=$(git rev-parse HEAD 2>/dev/null)
     SCM_CHANGE_SHORT=$(git rev-parse --short HEAD 2>/dev/null)
 
     # Check for publish branches
@@ -104,3 +115,5 @@ function build_git_prompt {
 
     PROMPT_SCM="%F{green} |󰊢  $SCM_HEAD $git_wc_state$git_remote_state$git_stash_state$git_publish_state$git_mode%F{green}|"
 }
+
+PROMPT_SCM_HANDLERS+=(build_git_prompt)
