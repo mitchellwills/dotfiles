@@ -1,15 +1,10 @@
 function build_git_prompt {
-    if !which git &> /dev/null; then return 1; fi
+    # don't support fast prompt generation
+    if [[ $1 == 'fast' ]]; then return 1; fi
 
-    SCM_CHANGE=$(git rev-parse HEAD 2>/dev/null)
-    if [[ -z "$SCM_CHANGE" ]]; then
-        return 1
-    fi
+    if ! which git &> /dev/null; then return 1; fi
 
-    if [[ $1 == 'fast' ]]; then
-      PROMPT_SCM="%F{green} |󰊢 |"
-      return
-    fi
+    if ! [[ -n "$(git rev-parse HEAD 2> /dev/null)" ]]; then return 1; fi
 
     local git_status_lines
     IFS=$'\n' git_status_lines=($(git status -bs --porcelain 2> /dev/null))
@@ -18,6 +13,7 @@ function build_git_prompt {
 
     local SCM_GIT_DIR=$(git rev-parse --git-dir 2>/dev/null)
     local ref=$(git symbolic-ref HEAD 2> /dev/null)
+    SCM_CHANGE=$(git rev-parse HEAD 2>/dev/null)
     SCM_BRANCH=${ref#refs/heads/}
     SCM_CHANGE_SHORT=$(git rev-parse --short HEAD 2>/dev/null)
 

@@ -2,7 +2,7 @@ function build_svn_prompt {
     # don't support fast prompt generation
     if [[ $1 == 'fast' ]]; then return 1; fi
 
-    if !which svn &> /dev/null; then return 1; fi
+    if ! which svn &> /dev/null; then return 1; fi
 
     local svn_info_lines
     svn_info_lines=("${(@f)$(svn info 2> /dev/null)}")
