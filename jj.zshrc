@@ -15,10 +15,6 @@ function build_jj_prompt {
 
     if ! which jj &> /dev/null; then return 1; fi
 
-    if ! jj op log -n 1 --no-graph --color=never --ignore-working-copy &>/dev/null; then
-        return 1
-    fi
-
     LOCAL_BOOKMARK_NAME="$2"
     EXTRA_REMOTE_BOOKMARKS="$3"
     REWRITE_TRUNK_REMOTE_BOOKMARKS="$4"
@@ -29,7 +25,9 @@ function build_jj_prompt {
       --ignore-working-copy  \
       -r 'trunk()::@'  \
       -T "${jj_log_template/EXTRA_REMOTE_BOOKMARKS/$EXTRA_REMOTE_BOOKMARKS}"  \
-      ))
+      2> /dev/null))
+
+    if [[ $? -ne 0 ]]; then return 1; fi
 
     SCM_JJ_TRUNK_CHANGE_ID=""
     SCM_JJ_TRUNK_BOOKMARKS=()
