@@ -6,7 +6,7 @@ jj_log_template='concat('\
 'stringify(empty), "|", '\
 'stringify(conflict), "|", '\
 'self.contained_in("trunk()"), "|", '\
-'stringify(remote_bookmarks.join(",")), "\n", '\
+'separate(",", stringify(remote_bookmarks.join(",")), EXTRA_REMOTE_BOOKMARKS), "\n", '\
 ')'
 
 function build_jj_prompt {
@@ -20,15 +20,16 @@ function build_jj_prompt {
     fi
 
     LOCAL_BOOKMARK_NAME="$2"
+    EXTRA_REMOTE_BOOKMARKS="$3"
+    REWRITE_TRUNK_REMOTE_BOOKMARKS="$4"
 
     local log_lines
     IFS=$'\n' log_lines=($(jj log  \
       --color=always --no-graph  \
       --ignore-working-copy  \
       -r 'trunk()::@'  \
-      -T "$jj_log_template"  \
+      -T "${jj_log_template/EXTRA_REMOTE_BOOKMARKS/$EXTRA_REMOTE_BOOKMARKS}"  \
       ))
-
 
     SCM_JJ_TRUNK_CHANGE_ID=""
     SCM_JJ_TRUNK_BOOKMARKS=()
@@ -82,6 +83,7 @@ function build_jj_prompt {
     if [[ -z $SCM_JJ_TRUNK_BOOKMARKS ]]; then
       SCM_HEAD+="%F{cyan}($SCM_JJ_TRUNK_CHANGE_ID%F{cyan})"
     else
+      $REWRITE_TRUNK_REMOTE_BOOKMARKS
       IFS=',' SCM_HEAD+="%F{cyan}(%F{cyan}${SCM_JJ_TRUNK_BOOKMARKS[*]})"
     fi
     SCM_HEAD+="%F{white}:$SCM_JJ_WC_CHANGE_ID%F{white}:$SCM_JJ_WC_COMMIT_ID"
