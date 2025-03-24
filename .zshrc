@@ -155,7 +155,7 @@ function TRAPUSR2 {
     zle && zle reset-prompt
 }
 
-PROMPT=$'\n$PROMPT_EXIT_STATUS$PROMPT_JOBS%F{yellow}%n%F{white}@$PROMPT_MACHINE_PREFIX%m %F{blue}[$PROMPT_WD]%{$reset_color%}$PROMPT_ASYNC\n%F{cyan}%h %{$reset_color%}%(!.#.$) '
+PROMPT=$'\n$PROMPT_EXIT_STATUS$PROMPT_JOBS%F{yellow}%n%F{white}@$PROMPT_MACHINE_PREFIX%m %F{blue}[$PROMPT_WD]%{$reset_color%}$PROMPT_ASYNC\n%{$reset_color%}%(!.#.$) '
 
 source /usr/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
 
