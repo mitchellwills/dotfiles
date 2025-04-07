@@ -5,7 +5,7 @@ jj_log_template='concat('\
 'stringify(current_working_copy), "|", '\
 'stringify(empty), "|", '\
 'stringify(conflict), "|", '\
-'self.contained_in("trunk()"), "|", '\
+'self.contained_in("..trunk()"), "|", '\
 'separate(",", stringify(remote_bookmarks.join(",")), EXTRA_REMOTE_BOOKMARKS), "\n", '\
 ')'
 
@@ -23,7 +23,7 @@ function build_jj_prompt {
     IFS=$'\n' log_lines=($(jj log  \
       --color=always --no-graph  \
       --ignore-working-copy  \
-      -r 'trunk()::@'  \
+      -r 'present(@) | ancestors(trunk().., 2) | present(trunk())'  \
       -T "${jj_log_template/EXTRA_REMOTE_BOOKMARKS/$EXTRA_REMOTE_BOOKMARKS}"  \
       2> /dev/null))
 
@@ -31,10 +31,12 @@ function build_jj_prompt {
 
     SCM_JJ_TRUNK_CHANGE_ID=""
     SCM_JJ_TRUNK_BOOKMARKS=()
-    SCM_JJ_UNCOMMITED="false"
     SCM_JJ_NON_TRUNK_CHANGES=0
+    SCM_JJ_WC_CLEAN="true"
     SCM_JJ_WC_CHANGE_ID=""
     SCM_JJ_WC_COMMIT_ID=""
+    SCM_JJ_WC_DIRTY="true"
+    SCM_JJ_WC_UNNAMED="false"
     SCM_JJ_CONFLICT="false"
 
     for raw_line in "${log_lines[@]}"; do
@@ -67,7 +69,10 @@ function build_jj_prompt {
         fi
 
         if [[ "$description_length" = 0 && "$current_working_copy" = true ]]; then
-          SCM_JJ_UNCOMMITED=true
+          SCM_JJ_WC_UNNAMED=true
+          if [ "$empty" = true ]; then
+            SCM_JJ_WC_DIRTY=false
+          fi
         else
           ((++SCM_JJ_NON_TRUNK_CHANGES))
         fi
@@ -87,11 +92,18 @@ function build_jj_prompt {
     SCM_HEAD+="%F{white}:$SCM_JJ_WC_CHANGE_ID%F{white}:$SCM_JJ_WC_COMMIT_ID"
 
     local jj_wc_state=""
-    if [ "$SCM_JJ_UNCOMMITED" = true ]; then
-      jj_wc_state="%F{red}(*)"
+    if [ "$SCM_JJ_WC_UNNAMED" = true ]; then
+      if [ "$SCM_JJ_WC_DIRTY" = true ]; then
+        jj_wc_state="%F{red}(*)"
+      else
+        jj_wc_state="$SCM_CLEAN_SYMBOL"
+      fi
     else
-      jj_wc_state="$SCM_CLEAN_SYMBOL"
+      if [ "$SCM_JJ_WC_UNNAMED" != true ]; then
+        jj_wc_state+="$fg_bold[red]NAMED_WORKING_COPY"
+      fi
     fi
+
     if [ "$SCM_JJ_CONFLICT" = true ]; then
       jj_wc_state+=" $fg_bold[red]CONFLICT"
     fi
