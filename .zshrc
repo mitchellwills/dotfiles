@@ -118,31 +118,31 @@ precmd() {
     PROMPT_SCM=""
     local_precmd
 
-    # fill in the bits of prompt that can be done very quickly (e.g. from cwd)
-    for fn in "${PROMPT_SCM_HANDLERS[@]}"; do
-      if $fn 'fast'; then
-        break
-      fi
-    done
-
-    PROMPT_ASYNC="$PROMPT_SCM"
-    async-build-prompt &!
+    async_precmd 'fast'
+    invoke_async_precmd_and_notify_shell &!
 }
-function local_precmd {} # to be overridden by local script
+function local_precmd { } # to be overridden by local script
 
 unset PROMPT_SCM_HANDLERS
 PROMPT_SCM_HANDLERS=()
 
-function async-build-prompt {
-  # SCM
-  PROMPT_SCM=""
+function async_precmd {
+  # fill in the bits of prompt that can be done very quickly (e.g. from cwd)
   for fn in "${PROMPT_SCM_HANDLERS[@]}"; do
-    if $fn; then
+    if $fn $1; then
       break
     fi
   done
+  PROMPT_ASYNC="$PROMPT_SCM"
 
-  printf "%s" "$PROMPT_SCM" > ${TMPPREFIX}/prompt-delay.$$
+  local_async_precmd $1
+}
+function local_async_precmd { } # to be overridden by local script
+
+function invoke_async_precmd_and_notify_shell {
+  async_precmd
+
+  printf "%s" "$PROMPT_ASYNC" > ${TMPPREFIX}/prompt-async.$$
 
   # Tell shell to update prompt
   kill -SIGUSR2 $$
@@ -150,7 +150,7 @@ function async-build-prompt {
 
 # callback from child process
 function TRAPUSR2 {
-    PROMPT_ASYNC=$(cat "${TMPPREFIX}/prompt-delay.$$")
+    PROMPT_ASYNC=$(cat "${TMPPREFIX}/prompt-async.$$")
     # Redisplay prompt
     zle && zle reset-prompt
 }
