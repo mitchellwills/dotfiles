@@ -37,10 +37,13 @@
         # list all commits that have not yet been pushed to the upstream branch
         pending = !sh -c 'git lol $(git config branch.$(git name-rev --name-only HEAD).remote)/$(git rev-parse --abbrev-ref --symbolic-full-name $(git config branch.$(git name-rev --name-only HEAD).merge))..HEAD'
 
-[include]
-    path = ~/.local.gitconfig
-
 [core]
         pager = less -+$LESS -R
 [init]
-	defaultBranch = main
+        defaultBranch = main
+[user]
+        email = me@mitchellwills.com
+        name = Mitchell Wills
+
+[include]
+    path = ~/.local.gitconfig
