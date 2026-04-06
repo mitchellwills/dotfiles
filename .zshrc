@@ -17,11 +17,13 @@ WORDCHARS=${WORDCHARS/\/} # don't consider forward slash part of a word
 
 # Setup history
 HISTFILE=~/.zsh_history
+HISTSIZE=5000
+SAVEHIST=5000
 setopt APPEND_HISTORY
-HISTSIZE=1000
-SAVEHIST=1000
+setopt INC_APPEND_HISTORY
 setopt HIST_IGNORE_DUPS
 setopt HIST_IGNORE_SPACE
+setopt HIST_FIND_NO_DUPS
 
 # Initialize colors
 autoload -U colors && colors
