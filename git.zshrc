@@ -7,7 +7,7 @@ function build_git_prompt {
     if ! [[ -n "$(git rev-parse HEAD 2> /dev/null)" ]]; then return 1; fi
 
     local git_status_lines
-    IFS=$'\n' git_status_lines=($(git status -bs --porcelain 2> /dev/null))
+    IFS=$'\n' git_status_lines=($(git --no-optional-locks status -bs --porcelain 2> /dev/null))
     local git_stash_list_lines
     IFS=$'\n' git_stash_list_lines=($(git stash list 2> /dev/null))
 
